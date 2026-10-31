@@ -128,7 +128,7 @@ cat > 'app.js' <<'__EOF__'
     return null;
   }
   function parseMatches(html) {
-    const out = [], re = /<a[^>]+href="([^"]*\/zapas\/([0-9a-f]+)\/?)"[^>]*>([\s\S]*?)<\/a>/g;
+    const out = [], re = /<a\b[^>]*?href=["']([^"']*\/zapas\/([0-9a-f]+)\/?)["'][^>]*>([\s\S]*?)<\/a>/g;
     let m;
     while ((m = re.exec(html))) {
       const t = m[3].replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
@@ -223,7 +223,15 @@ const UA = 'Mozilla/5.0 (compatible; futbal-bot; +https://github.com)';
 async function page(url) {
   const r = await fetch(url, { headers: { 'User-Agent': UA, 'Accept-Language': 'sk' } });
   if (!r.ok) throw new Error(url + ' -> HTTP ' + r.status);
-  return F.parseMatches(await r.text());
+  const html = await r.text();
+  const ms = F.parseMatches(html);
+  const i = html.indexOf('/zapas/');
+  console.log(url, '| dĺžka', html.length, '| výskytov /zapas/:', html.split('/zapas/').length - 1, '| zápasov:', ms.length);
+  if (!ms.length) {
+    console.log('--- ukážka HTML okolo prvého /zapas/ ---');
+    console.log(i >= 0 ? html.slice(Math.max(0, i - 300), i + 700) : html.slice(0, 1000));
+  }
+  return ms;
 }
 (async () => {
   fs.mkdirSync('data', { recursive: true });
@@ -232,6 +240,7 @@ async function page(url) {
     try {
       const b = F.BASE + p.slug + '/';
       const [program, vysledky] = await Promise.all([page(b + 'program/'), page(b + 'vysledky/')]);
+      if (!program.length && !vysledky.length) throw new Error('nenašli sa žiadne zápasy');
       fs.writeFileSync(`data/${p.slug}.json`, JSON.stringify({ updated: new Date().toISOString(), program, vysledky }, null, 1));
       console.log(p.slug, 'program', program.length, 'vysledky', vysledky.length);
     } catch (e) { failed++; console.error(p.slug, e.message); }
@@ -248,6 +257,9 @@ on:
   push: { branches: [main], paths: ['scripts/**', 'app.js'] }
 permissions:
   contents: write
+concurrency:
+  group: update-data
+  cancel-in-progress: false
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -262,12 +274,13 @@ jobs:
           git config user.name "futbal-bot"
           git config user.email "futbal-bot@users.noreply.github.com"
           git add data
-          git diff --cached --quiet || (git commit -m "Aktualizácia údajov" && git push)
+          git diff --cached --quiet || (git commit -m "Aktualizácia údajov" && git pull --rebase origin main && git push)
 __EOF__
 
 touch data/.gitkeep
 node test.js
 git add -A
-git commit -m "Pridané všetky súbory a workflow" || true
+git commit -m "Oprava workflow a načítania zápasov" || true
+git pull --rebase origin main
 git push
-echo "Hotovo. Teraz otvor Actions a daj Re-run."
+echo "Hotovo. V Actions spusti Run workflow."
