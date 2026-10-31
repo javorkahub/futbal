@@ -18,4 +18,12 @@ assert.strictEqual(t.gp, 4); assert.strictEqual(t.pts, 7);
 assert.strictEqual(F.teamStats(ms, { aa1: { gf: 0, ga: 1 } }).pts, 1);
 // player stats count only played matches
 assert.deepStrictEqual(F.playerStats({ a: { played: true, goals: 2, assists: 1 }, b: { played: false, goals: 9 }, c: { played: true, goals: '1' } }), { played: 2, goals: 3, assists: 1 });
+// formát JSON zo Sportnetu (Next.js, s escapovanými úvodzovkami)
+const J = '{\\"matches\\":[{\\"id\\":\\"6a573504d14e91f303d8cec1\\",\\"detailUrl\\":\\"/z/x/zapas/6a573504d14e91f303d8cec1/\\",\\"appSpace\\":\\"BA\\",\\"key\\":\\"k\\",\\"date\\":\\"$D2026-10-24T12:30:00.000Z\\",\\"homeTeam\\":{\\"name\\":\\"MŠK Senec B\\",\\"score\\":\\"1\\",\\"logo\\":{\\"src\\":\\"u\\"},\\"meta\\":{\\"_id\\":\\"x\\"}},\\"awayTeam\\":{\\"name\\":\\"OŠK Chorvátsky Grob B\\",\\"score\\":\\"0\\",\\"logo\\":{}}},' +
+  '{\\"id\\":\\"6a573505d14e91f303d8d153\\",\\"appSpace\\":\\"BA\\",\\"detailUrl\\":\\"/z/x/zapas/6a573505d14e91f303d8d153/\\",\\"key\\":\\"k\\",\\"date\\":\\"$D2026-11-08T10:30:00.000Z\\",\\"homeTeam\\":{\\"name\\":\\"FK Slovan Ivanka pri Dunaji\\",\\"score\\":\\"-\\"},\\"awayTeam\\":{\\"name\\":\\"OŠK Chorvátsky Grob B\\",\\"score\\":\\"-\\"}}]}';
+const jm = F.parseMatches(J + J);
+assert.strictEqual(jm.length, 2);
+assert.deepStrictEqual([jm[0].date, jm[0].time, jm[0].hs, jm[0].as], ['2026-10-24', '14:30', 1, 0]);
+assert.deepStrictEqual([jm[1].date, jm[1].time, jm[1].hs], ['2026-11-08', '11:30', null]);
+assert.strictEqual(F.view(jm[0], {}).gf, 0);
 console.log('✅ Všetky testy prešli');
