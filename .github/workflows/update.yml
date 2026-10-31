@@ -1,10 +1,13 @@
 name: Aktualizácia údajov zo Sportnetu
 on:
-  schedule: [{ cron: '0 * * * *' }]
+  schedule: [{ cron: '0 * * * *' }]   # každú hodinu
   workflow_dispatch: {}
   push: { branches: [main], paths: ['scripts/**', 'app.js'] }
 permissions:
   contents: write
+concurrency:
+  group: update-data
+  cancel-in-progress: false
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -19,4 +22,4 @@ jobs:
           git config user.name "futbal-bot"
           git config user.email "futbal-bot@users.noreply.github.com"
           git add data
-          git diff --cached --quiet || (git commit -m "Aktualizácia údajov" && git push)
+          git diff --cached --quiet || (git commit -m "Aktualizácia údajov" && git pull --rebase origin main && git push)

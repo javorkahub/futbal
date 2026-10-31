@@ -12,7 +12,7 @@
     return null;
   }
   function parseMatches(html) {
-    const out = [], re = /<a[^>]+href="([^"]*\/zapas\/([0-9a-f]+)\/?)"[^>]*>([\s\S]*?)<\/a>/g;
+    const out = [], re = /<a\b[^>]*?href=["']([^"']*\/zapas\/([0-9a-f]+)\/?)["'][^>]*>([\s\S]*?)<\/a>/g;
     let m;
     while ((m = re.exec(html))) {
       const t = m[3].replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
