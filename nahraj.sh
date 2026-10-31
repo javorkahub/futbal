@@ -49,8 +49,8 @@ input[type=number],input[type=text],input[type=date]{font:inherit;width:100%;pad
 <script src="app.js"></script>
 <script>
 const F=window.Futbal,$=s=>document.querySelector(s);
-const TABS={prog:'📅 Program',res:'🏆 Výsledky',team:'📊 Tím',me:'⭐ Moje štatistiky'};
-let pid=localStorage.getItem('futbal:last')||'tomas',tab='prog',sched=[],resu=[],S;
+const TABS={prog:'📅 Program',res:'🏆 Výsledky',team:'📊 Tím',me:'⭐ Moje štatistiky',tbl:'🥇 Tabuľka'};
+let tbl=null,pid=localStorage.getItem('futbal:last')||'tomas',tab='prog',sched=[],resu=[],S;
 const load=()=>{try{return JSON.parse(localStorage.getItem('futbal:'+pid))||{}}catch(e){return{}}};
 const save=()=>localStorage.setItem('futbal:'+pid,JSON.stringify(S));
 async function refresh(){
@@ -58,7 +58,7 @@ async function refresh(){
   try{
     const r=await fetch('data/'+F.PROFILES[pid].slug+'.json?'+Date.now());
     if(!r.ok)throw 0;
-    const d=await r.json();sched=d.program||[];resu=d.vysledky||[];
+    const d=await r.json();sched=d.program||[];resu=d.vysledky||[];tbl=d.table||null;
     const t=new Date(d.updated);
     $('#st').textContent='✅ Údaje zo Sportnetu z '+t.toLocaleString('sk-SK',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'});
   }catch(e){$('#st').textContent='⚠️ Údaje zo Sportnetu sa nepodarilo načítať – ukazujem len ručné údaje'}
@@ -72,7 +72,7 @@ function row(m){const e=E()[m.id]||{},v=F.view(m,e),r=v.gf===null?'':v.gf>v.ga?'
   <div class="t">${v.homeOurs?'🏠':'🚌'} ${v.opp}<div class="note">${e.played?`⚽${e.goals||0} 🎯${e.assists||0} ${e.mood||''}`:'klikni a zapíš'}</div></div>
   <div class="sc ${r}">${v.gf===null?'–':v.gf+':'+v.ga}</div></div>`}
 function render(){
-  $('#nav').innerHTML=Object.entries(TABS).map(([k,t])=>`<button data-t="${k}" class="${k===tab?'on':''}">${t}</button>`).join('');
+  $('#nav').innerHTML=Object.entries(TABS).filter(([k])=>k!=='tbl'||F.PROFILES[pid].tablePart).map(([k,t])=>`<button data-t="${k}" class="${k===tab?'on':''}">${t}</button>`).join('');
   const ms=all(),today=new Date().toISOString().slice(0,10),en=E();let h='';
   if(tab==='prog'){const l=ms.filter(m=>m.date>=today&&F.view(m,en[m.id]).gf===null);
     h=l.map(row).join('')||'<div class="card">Žiadne naplánované zápasy 🎉</div>';
@@ -81,33 +81,36 @@ function render(){
   if(tab==='team'){const s=F.teamStats(ms,en);h=`<div class="card"><b>${F.PROFILES[pid].team}</b><div class="note">Výhra 3 body · remíza 1 bod · prehra 0 bodov</div></div><div class="grid">
    <div class="stat"><b>${s.gp}</b>zápasov</div><div class="stat g"><b>${s.pts}</b>bodov</div><div class="stat b"><b>${s.w}-${s.d}-${s.l}</b>V-R-P</div>
    <div class="stat g"><b>${s.gf}</b>strelené góly</div><div class="stat r"><b>${s.ga}</b>inkasované</div><div class="stat"><b>${s.gf-s.ga}</b>skóre rozdiel</div></div>`}
+  if(tab==='tbl'){const L=`<div class="card"><a href="${F.BASE}${F.PROFILES[pid].slug}/tabulky/#/?competitionId=6a217228233cdeb1e753a3b2&partId=${F.PROFILES[pid].tablePart}" target="_blank" rel="noopener">Tabuľka MZM B na Sportnete ↗</a></div>`;
+   h=tbl&&tbl.length?`<div class="card" style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;text-align:center"><tr style="background:#ffd23f"><th>#</th><th style="text-align:left">Klub</th><th>Z</th><th>V</th><th>R</th><th>P</th><th>Skóre</th><th>B</th></tr>`+tbl.map(r=>`<tr style="${/Chorvátsky Grob/.test(r.club)?'background:#b9f3cf;font-weight:700':''}"><td>${r.pos}</td><td style="text-align:left">${r.club}</td><td>${r.z}</td><td>${r.v}</td><td>${r.r}</td><td>${r.p}</td><td>${r.gf}:${r.ga}</td><td><b>${r.pts}</b></td></tr>`).join('')+`</table></div>`+L:`<div class="card">Tabuľku sa zatiaľ nepodarilo načítať automaticky.</div>`+L}
   if(tab==='me'){const s=F.playerStats(en);h=`<div class="grid"><div class="stat b"><b>${s.played}</b>odohraných</div><div class="stat g"><b>${s.goals}</b>⚽ góly</div><div class="stat"><b>${s.assists}</b>🎯 asistencie</div></div>
    <div class="card"><a href="${F.PROFILES[pid].url}" target="_blank" rel="noopener">Profil na Sportnete ↗</a></div>`;
    h+=ms.filter(m=>(en[m.id]||{}).played).reverse().map(row).join('')}
   $('#v').innerHTML=h;
 }
-function edit(id){const m=all().find(x=>x.id===id),e=E()[id]||{},v=F.view(m,e);
-  $('#dlg').innerHTML=`<h2>${v.opp}</h2><div class="note">${fd(m.date)} ${m.time||''}</div>
+function edit(id){const m=all().find(x=>x.id===id),e=E()[id]||{},v=F.view(m,e),man=(S.manual||[]).some(x=>x.id===id);
+  $('#dlg').innerHTML=`<h2>${v.opp}</h2>${man?`<label>Dátum a čas</label><div class="row"><input type="date" id="md" value="${m.date}"><input type="time" id="mt" value="${m.time||''}"></div><label>Súper</label><input type="text" id="mo2" value="${v.opp.replace(/"/g,'&quot;')}"><label><input type="checkbox" id="mh" ${v.homeOurs?'checked':''}> Doma</label>`:`<div class="note">${fd(m.date)} ${m.time||''}</div>`}
   <label><input type="checkbox" id="p" ${e.played?'checked':''}> ✅ Hral som</label>
   <div class="row"><div><label>⚽ Góly</label><input type="number" min="0" id="g" value="${e.goals||0}"></div><div><label>🎯 Asistencie</label><input type="number" min="0" id="a" value="${e.assists||0}"></div></div>
   <label>Aký dojem z zápasu?</label><div class="moods" id="mo">${['😀','🙂','😐','🙁'].map(x=>`<button type="button" class="${e.mood===x?'on':''}">${x}</button>`).join('')}</div>
   <input type="text" id="n" placeholder="Poznámka (voliteľné)" value="${(e.note||'').replace(/"/g,'&quot;')}" style="margin-top:8px">
   <label>Výsledok (naše : súper)</label><div class="row"><input type="number" min="0" id="gf" value="${v.gf??''}"><input type="number" min="0" id="ga" value="${v.ga??''}"></div>
-  <div class="row" style="margin-top:14px"><button class="btn o" id="x">Zrušiť</button><button class="btn" id="ok">💾 Uložiť</button></div>`;
+  <div class="row" style="margin-top:14px"><button class="btn o" id="x">Zrušiť</button><button class="btn" id="del" style="background:var(--r)">🗑 ${man?'Zmazať zápas':'Vymazať záznam'}</button><button class="btn" id="ok">💾 Uložiť</button></div>`;
   let mood=e.mood||'';$('#mo').onclick=ev=>{if(ev.target.tagName!=='BUTTON')return;mood=ev.target.textContent;[...$('#mo').children].forEach(b=>b.classList.toggle('on',b===ev.target))};
   $('#x').onclick=()=>$('#dlg').close();
-  $('#ok').onclick=()=>{E()[id]={played:$('#p').checked,goals:+$('#g').value||0,assists:+$('#a').value||0,mood,note:$('#n').value,gf:$('#gf').value,ga:$('#ga').value};save();$('#dlg').close();render()};
+  $('#del').onclick=()=>{if(!confirm(man?'Naozaj zmazať tento zápas aj so záznamom?':'Vymazať tvoj záznam k tomuto zápasu (góly, asistencie, dojem, ručný výsledok)?'))return;if(man)S.manual=S.manual.filter(x=>x.id!==id);delete E()[id];save();$('#dlg').close();render()};
+  $('#ok').onclick=()=>{if(man){const o=$('#mo2').value.trim(),d=$('#md').value;if(!o||!d){alert('Vyplň dátum a súpera');return}const us='OŠK Chorvátsky Grob',hm=$('#mh').checked;Object.assign(m,{date:d,time:$('#mt').value,home:hm?us:o,away:hm?o:us})}E()[id]={played:$('#p').checked,goals:+$('#g').value||0,assists:+$('#a').value||0,mood,note:$('#n').value,gf:$('#gf').value,ga:$('#ga').value};save();$('#dlg').close();render()};
   $('#dlg').showModal()}
-function addMatch(){$('#dlg').innerHTML=`<h2>➕ Nový zápas</h2><label>Dátum</label><input type="date" id="d"><label>Súper</label><input type="text" id="o">
+function addMatch(){$('#dlg').innerHTML=`<h2>➕ Nový zápas</h2><label>Dátum a čas</label><div class="row"><input type="date" id="d"><input type="time" id="t"></div><label>Súper</label><input type="text" id="o">
   <label><input type="checkbox" id="h" checked> Doma</label><div class="row" style="margin-top:14px"><button class="btn o" id="x">Zrušiť</button><button class="btn" id="ok">Pridať</button></div>`;
   $('#x').onclick=()=>$('#dlg').close();
   $('#ok').onclick=()=>{const d=$('#d').value,o=$('#o').value.trim();if(!d||!o)return;const us='OŠK Chorvátsky Grob',hm=$('#h').checked;
-    (S.manual=S.manual||[]).push({id:'m'+Date.now(),date:d,time:'',home:hm?us:o,away:hm?o:us,hs:null,as:null});save();$('#dlg').close();render()};
+    (S.manual=S.manual||[]).push({id:'m'+Date.now(),date:d,time:$('#t').value,home:hm?us:o,away:hm?o:us,hs:null,as:null});save();$('#dlg').close();render()};
   $('#dlg').showModal()}
 document.addEventListener('click',ev=>{const t=ev.target.closest('[data-t]'),c=ev.target.closest('[data-id]');
   if(t){tab=t.dataset.t;render()}else if(c)edit(c.dataset.id);else if(ev.target.id==='add')addMatch()});
 $('#who').innerHTML=Object.entries(F.PROFILES).map(([k,p])=>`<option value="${k}">${p.name} (${p.team.split(' ')[0]})</option>`).join('');
-function start(){$('#who').value=pid;S=load();sched=[];resu=[];render();refresh()}
+function start(){$('#who').value=pid;S=load();sched=[];resu=[];tbl=null;if(tab==='tbl'&&!F.PROFILES[pid].tablePart)tab='prog';render();refresh()}
 $('#who').onchange=e=>{pid=e.target.value;localStorage.setItem('futbal:last',pid);start()};
 start();
 </script></body></html>
@@ -118,7 +121,7 @@ cat > 'app.js' <<'__EOF__'
   const BASE = 'https://sportnet.sme.sk/futbalnet/k/osk-chorvatsky-grob/tim/';
   const CLUB = 'Chorvátsky Grob';
   const PROFILES = {
-    tomas: { name: 'Tomáš Mráz', team: 'U13 – Mladší žiaci B', slug: 'u13-m-b', url: 'https://sportnet.sme.sk/futbalnet/clen/68d95f7194d10f7e9dd67b25/tomas-mraz/' },
+    tomas: { name: 'Tomáš Mráz', team: 'U13 – Mladší žiaci B', slug: 'u13-m-b', tablePart: '6a38d5270b755716bcd9bea3', url: 'https://sportnet.sme.sk/futbalnet/clen/68d95f7194d10f7e9dd67b25/tomas-mraz/' },
     oliver: { name: 'Oliver Mráz', team: 'U10 – A', slug: 'u10-m-a', url: 'https://sportnet.sme.sk/futbalnet/clen/68dad51f94d10f7e9dd6a3be/oliver-mraz/' }
   };
 
@@ -173,6 +176,19 @@ cat > 'app.js' <<'__EOF__'
     const j = parseJson(html);
     return j.length ? j : parseAnchors(html);
   }
+  // Tabuľka: riadky v tvare "1 Klub Klub 13 13 0 0 129:8 39 ..." (názov býva v texte dvakrát – logo + odkaz)
+  function parseTable(html) {
+    const rows = [], re = /<tr[\s\S]*?<\/tr>/g;
+    let m;
+    while ((m = re.exec(html))) {
+      const t = m[0].replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
+      const r = t.match(/^(\d+) (.+?) (\d+) (\d+) (\d+) (\d+) (\d+):(\d+) (\d+)(?: |$)/);
+      if (!r) continue;
+      const w = r[2].split(' '), h = halve(w);
+      rows.push({ pos: +r[1], club: h && h[0] * 2 === w.length ? h[1] : r[2], z: +r[3], v: +r[4], r: +r[5], p: +r[6], gf: +r[7], ga: +r[8], pts: +r[9] });
+    }
+    return rows;
+  }
   const isOurs = n => n.includes(CLUB);
   // normalise to our perspective; manual entry (e.g. {gf,ga}) wins over website score
   function view(m, e) {
@@ -198,7 +214,7 @@ cat > 'app.js' <<'__EOF__'
     Object.values(entries).forEach(e => { if (e.played) { s.played++; s.goals += +e.goals || 0; s.assists += +e.assists || 0; } });
     return s;
   }
-  const API = { PROFILES, BASE, parseMatches, view, teamStats, playerStats, isOurs };
+  const API = { PROFILES, BASE, parseMatches, parseTable, view, teamStats, playerStats, isOurs };
   if (typeof module !== 'undefined') module.exports = API; else root.Futbal = API;
 })(typeof window !== 'undefined' ? window : globalThis);
 __EOF__
@@ -232,6 +248,12 @@ assert.strictEqual(jm.length, 2);
 assert.deepStrictEqual([jm[0].date, jm[0].time, jm[0].hs, jm[0].as], ['2026-10-24', '14:30', 1, 0]);
 assert.deepStrictEqual([jm[1].date, jm[1].time, jm[1].hs], ['2026-11-08', '11:30', null]);
 assert.strictEqual(F.view(jm[0], {}).gf, 0);
+const tr = c => '<tr>' + c.map(x => '<td>' + x + '</td>').join('') + '</tr>';
+const tb = F.parseTable(tr(['2', 'OŠK Chorvátsky Grob B', 'OŠK Chorvátsky Grob B', '13', '10', '1', '2', '61:25', '31', '15', '10', '<a>V</a> <a>R</a>']) +
+  tr(['3', '<img alt="x"> Senec Football Academy B', '12', '7', '3', '2', '51:37', '24', '14', '9', 'R']) + tr(['Klub', 'Z']));
+assert.strictEqual(tb.length, 2);
+assert.deepStrictEqual([tb[0].pos, tb[0].club, tb[0].v, tb[0].gf, tb[0].ga, tb[0].pts], [2, 'OŠK Chorvátsky Grob B', 10, 61, 25, 31]);
+assert.strictEqual(tb[1].club, 'Senec Football Academy B');
 console.log('✅ Všetky testy prešli');
 __EOF__
 
@@ -249,28 +271,69 @@ cat > 'scripts/fetch.js' <<'__EOF__'
 const fs = require('fs');
 const F = require('../app.js');
 const UA = 'Mozilla/5.0 (compatible; futbal-bot; +https://github.com)';
-async function page(url) {
+
+async function html(url) {
   const r = await fetch(url, { headers: { 'User-Agent': UA, 'Accept-Language': 'sk' } });
   if (!r.ok) throw new Error(url + ' -> HTTP ' + r.status);
-  const html = await r.text();
-  const ms = F.parseMatches(html);
-  const i = html.indexOf('/zapas/');
-  console.log(url, '| dĺžka', html.length, '| výskytov /zapas/:', html.split('/zapas/').length - 1, '| zápasov:', ms.length);
-  if (!ms.length) {
-    console.log('--- ukážka HTML okolo prvého /zapas/ ---');
-    console.log(i >= 0 ? html.slice(Math.max(0, i - 300), i + 700) : html.slice(0, 1000));
-  }
-  return ms;
+  return r.text();
 }
+function diag(url, h, ms) {
+  console.log(url, '| dĺžka', h.length, '| zápasov na 1. strane:', ms.length);
+  const t = h.replace(/\\/g, '');
+  const keys = [...new Set((t.match(/"(next[A-Za-z]*|cursor|hasMore|hasNext[A-Za-z]*|total[A-Za-z]*|offset|limit|pageParams?|page|pageSize)":[^,}\]]{0,40}/g) || []))];
+  console.log('   kľúče na stránkovanie:', keys.slice(0, 15).join(' ; ') || '(žiadne)');
+  const i = t.indexOf('"pageParams"');
+  if (i >= 0) console.log('   okolie pageParams:', t.slice(Math.max(0, i - 200), i + 200));
+}
+// 1. strana + pokus o ďalšie strany (Sportnet ich dopĺňa tlačidlom „Načítať ďalšie“)
+async function load(url, extra) {
+  const h = await html(url);
+  let all = F.parseMatches(h);
+  if (!ms0(all)) console.log('   ukážka HTML:', h.slice(0, 300));
+  if (extra) diag(url, h, all);
+  else console.log(url, '| zápasov:', all.length);
+  if (!extra || !all.length) return all;
+  for (const param of ['page', 'p', 'strana']) {
+    let n = 2, added = 0;
+    for (; n <= 15; n++) {
+      let more = [];
+      try { more = F.parseMatches(await html(`${url}?${param}=${n}`)); } catch (e) { break; }
+      const seen = new Set(all.map(m => m.id));
+      const fresh = more.filter(m => !seen.has(m.id));
+      if (!fresh.length) break;
+      all = all.concat(fresh); added += fresh.length;
+    }
+    if (added) { console.log(`   ďalšie strany cez ?${param}= pridali ${added} zápasov`); break; }
+  }
+  if (all.length) console.log('   spolu zápasov:', all.length);
+  return all;
+}
+async function loadTable(url, part) {
+  const h = await html(url);
+  const rows = F.parseTable(h);
+  console.log(url, '| riadkov tabuľky v HTML:', rows.length);
+  if (rows.some(r => /Chorvátsky Grob B/.test(r.club))) return rows;   // len tabuľka MZM B (A-čko má v názve len „Chorvátsky Grob“)
+  if (rows.length) console.log('   tabuľka v HTML je pre inú skupinu (nie MZM B) – nepoužitá');
+  const t = h.replace(/\\/g, '');
+  console.log('   výskytov partId:', t.split(part).length - 1);
+  const api = [...new Set(t.match(/https?:\/\/[a-z.]*sportnet\.[a-z]+\/[A-Za-z0-9_\-\/.]*(?:competition|part|table|standing|tabul)[A-Za-z0-9_\-\/.?=&]*/gi) || [])];
+  console.log('   adresy súvisiace s tabuľkou:', api.slice(0, 10).join(' ; ') || '(žiadne)');
+  const i = t.indexOf(part);
+  if (i >= 0) console.log('   okolie partId:', t.slice(Math.max(0, i - 200), i + 400));
+  return undefined;
+}
+const ms0 = a => a.length > 0;
+
 (async () => {
   fs.mkdirSync('data', { recursive: true });
   let failed = 0;
   for (const p of Object.values(F.PROFILES)) {
     try {
       const b = F.BASE + p.slug + '/';
-      const [program, vysledky] = await Promise.all([page(b + 'program/'), page(b + 'vysledky/')]);
+      const [program, vysledky] = await Promise.all([load(b + 'program/', true), load(b + 'vysledky/', true)]);
+      const table = p.tablePart ? await loadTable(b + 'tabulky/', p.tablePart) : undefined;
       if (!program.length && !vysledky.length) throw new Error('nenašli sa žiadne zápasy');
-      fs.writeFileSync(`data/${p.slug}.json`, JSON.stringify({ updated: new Date().toISOString(), program, vysledky }, null, 1));
+      fs.writeFileSync(`data/${p.slug}.json`, JSON.stringify({ updated: new Date().toISOString(), program, vysledky, table }, null, 1));
       console.log(p.slug, 'program', program.length, 'vysledky', vysledky.length);
     } catch (e) { failed++; console.error(p.slug, e.message); }
   }
@@ -309,7 +372,7 @@ __EOF__
 touch data/.gitkeep
 node test.js
 git add -A
-git commit -m "Načítanie zápasov z JSON zo Sportnetu" || true
+git commit -m "Úprava a mazanie záznamov, čas zápasu" || true
 git pull --rebase origin main
 git push
-echo "Hotovo. V Actions spusti Run workflow."
+echo "Hotovo."
