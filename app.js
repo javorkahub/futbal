@@ -2,7 +2,7 @@
   const BASE = 'https://sportnet.sme.sk/futbalnet/k/osk-chorvatsky-grob/tim/';
   const CLUB = 'Chorvátsky Grob';
   const PROFILES = {
-    tomas: { name: 'Tomáš Mráz', team: 'U13 – Mladší žiaci B', slug: 'u13-m-b', url: 'https://sportnet.sme.sk/futbalnet/clen/68d95f7194d10f7e9dd67b25/tomas-mraz/' },
+    tomas: { name: 'Tomáš Mráz', team: 'U13 – Mladší žiaci B', slug: 'u13-m-b', tablePart: '6a38d5270b755716bcd9bea3', url: 'https://sportnet.sme.sk/futbalnet/clen/68d95f7194d10f7e9dd67b25/tomas-mraz/' },
     oliver: { name: 'Oliver Mráz', team: 'U10 – A', slug: 'u10-m-a', url: 'https://sportnet.sme.sk/futbalnet/clen/68dad51f94d10f7e9dd6a3be/oliver-mraz/' }
   };
 
@@ -57,6 +57,19 @@
     const j = parseJson(html);
     return j.length ? j : parseAnchors(html);
   }
+  // Tabuľka: riadky v tvare "1 Klub Klub 13 13 0 0 129:8 39 ..." (názov býva v texte dvakrát – logo + odkaz)
+  function parseTable(html) {
+    const rows = [], re = /<tr[\s\S]*?<\/tr>/g;
+    let m;
+    while ((m = re.exec(html))) {
+      const t = m[0].replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
+      const r = t.match(/^(\d+) (.+?) (\d+) (\d+) (\d+) (\d+) (\d+):(\d+) (\d+)(?: |$)/);
+      if (!r) continue;
+      const w = r[2].split(' '), h = halve(w);
+      rows.push({ pos: +r[1], club: h && h[0] * 2 === w.length ? h[1] : r[2], z: +r[3], v: +r[4], r: +r[5], p: +r[6], gf: +r[7], ga: +r[8], pts: +r[9] });
+    }
+    return rows;
+  }
   const isOurs = n => n.includes(CLUB);
   // normalise to our perspective; manual entry (e.g. {gf,ga}) wins over website score
   function view(m, e) {
@@ -82,6 +95,6 @@
     Object.values(entries).forEach(e => { if (e.played) { s.played++; s.goals += +e.goals || 0; s.assists += +e.assists || 0; } });
     return s;
   }
-  const API = { PROFILES, BASE, parseMatches, view, teamStats, playerStats, isOurs };
+  const API = { PROFILES, BASE, parseMatches, parseTable, view, teamStats, playerStats, isOurs };
   if (typeof module !== 'undefined') module.exports = API; else root.Futbal = API;
 })(typeof window !== 'undefined' ? window : globalThis);

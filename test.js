@@ -26,4 +26,10 @@ assert.strictEqual(jm.length, 2);
 assert.deepStrictEqual([jm[0].date, jm[0].time, jm[0].hs, jm[0].as], ['2026-10-24', '14:30', 1, 0]);
 assert.deepStrictEqual([jm[1].date, jm[1].time, jm[1].hs], ['2026-11-08', '11:30', null]);
 assert.strictEqual(F.view(jm[0], {}).gf, 0);
+const tr = c => '<tr>' + c.map(x => '<td>' + x + '</td>').join('') + '</tr>';
+const tb = F.parseTable(tr(['2', 'OŠK Chorvátsky Grob B', 'OŠK Chorvátsky Grob B', '13', '10', '1', '2', '61:25', '31', '15', '10', '<a>V</a> <a>R</a>']) +
+  tr(['3', '<img alt="x"> Senec Football Academy B', '12', '7', '3', '2', '51:37', '24', '14', '9', 'R']) + tr(['Klub', 'Z']));
+assert.strictEqual(tb.length, 2);
+assert.deepStrictEqual([tb[0].pos, tb[0].club, tb[0].v, tb[0].gf, tb[0].ga, tb[0].pts], [2, 'OŠK Chorvátsky Grob B', 10, 61, 25, 31]);
+assert.strictEqual(tb[1].club, 'Senec Football Academy B');
 console.log('✅ Všetky testy prešli');

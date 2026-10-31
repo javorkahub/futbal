@@ -43,8 +43,8 @@ input[type=number],input[type=text],input[type=date]{font:inherit;width:100%;pad
 <script src="app.js"></script>
 <script>
 const F=window.Futbal,$=s=>document.querySelector(s);
-const TABS={prog:'📅 Program',res:'🏆 Výsledky',team:'📊 Tím',me:'⭐ Moje štatistiky'};
-let pid=localStorage.getItem('futbal:last')||'tomas',tab='prog',sched=[],resu=[],S;
+const TABS={prog:'📅 Program',res:'🏆 Výsledky',team:'📊 Tím',me:'⭐ Moje štatistiky',tbl:'🥇 Tabuľka'};
+let tbl=null,pid=localStorage.getItem('futbal:last')||'tomas',tab='prog',sched=[],resu=[],S;
 const load=()=>{try{return JSON.parse(localStorage.getItem('futbal:'+pid))||{}}catch(e){return{}}};
 const save=()=>localStorage.setItem('futbal:'+pid,JSON.stringify(S));
 async function refresh(){
@@ -52,7 +52,7 @@ async function refresh(){
   try{
     const r=await fetch('data/'+F.PROFILES[pid].slug+'.json?'+Date.now());
     if(!r.ok)throw 0;
-    const d=await r.json();sched=d.program||[];resu=d.vysledky||[];
+    const d=await r.json();sched=d.program||[];resu=d.vysledky||[];tbl=d.table||null;
     const t=new Date(d.updated);
     $('#st').textContent='✅ Údaje zo Sportnetu z '+t.toLocaleString('sk-SK',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'});
   }catch(e){$('#st').textContent='⚠️ Údaje zo Sportnetu sa nepodarilo načítať – ukazujem len ručné údaje'}
@@ -66,7 +66,7 @@ function row(m){const e=E()[m.id]||{},v=F.view(m,e),r=v.gf===null?'':v.gf>v.ga?'
   <div class="t">${v.homeOurs?'🏠':'🚌'} ${v.opp}<div class="note">${e.played?`⚽${e.goals||0} 🎯${e.assists||0} ${e.mood||''}`:'klikni a zapíš'}</div></div>
   <div class="sc ${r}">${v.gf===null?'–':v.gf+':'+v.ga}</div></div>`}
 function render(){
-  $('#nav').innerHTML=Object.entries(TABS).map(([k,t])=>`<button data-t="${k}" class="${k===tab?'on':''}">${t}</button>`).join('');
+  $('#nav').innerHTML=Object.entries(TABS).filter(([k])=>k!=='tbl'||F.PROFILES[pid].tablePart).map(([k,t])=>`<button data-t="${k}" class="${k===tab?'on':''}">${t}</button>`).join('');
   const ms=all(),today=new Date().toISOString().slice(0,10),en=E();let h='';
   if(tab==='prog'){const l=ms.filter(m=>m.date>=today&&F.view(m,en[m.id]).gf===null);
     h=l.map(row).join('')||'<div class="card">Žiadne naplánované zápasy 🎉</div>';
@@ -75,33 +75,36 @@ function render(){
   if(tab==='team'){const s=F.teamStats(ms,en);h=`<div class="card"><b>${F.PROFILES[pid].team}</b><div class="note">Výhra 3 body · remíza 1 bod · prehra 0 bodov</div></div><div class="grid">
    <div class="stat"><b>${s.gp}</b>zápasov</div><div class="stat g"><b>${s.pts}</b>bodov</div><div class="stat b"><b>${s.w}-${s.d}-${s.l}</b>V-R-P</div>
    <div class="stat g"><b>${s.gf}</b>strelené góly</div><div class="stat r"><b>${s.ga}</b>inkasované</div><div class="stat"><b>${s.gf-s.ga}</b>skóre rozdiel</div></div>`}
+  if(tab==='tbl'){const L=`<div class="card"><a href="${F.BASE}${F.PROFILES[pid].slug}/tabulky/#/?competitionId=6a217228233cdeb1e753a3b2&partId=${F.PROFILES[pid].tablePart}" target="_blank" rel="noopener">Tabuľka MZM B na Sportnete ↗</a></div>`;
+   h=tbl&&tbl.length?`<div class="card" style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;text-align:center"><tr style="background:#ffd23f"><th>#</th><th style="text-align:left">Klub</th><th>Z</th><th>V</th><th>R</th><th>P</th><th>Skóre</th><th>B</th></tr>`+tbl.map(r=>`<tr style="${/Chorvátsky Grob/.test(r.club)?'background:#b9f3cf;font-weight:700':''}"><td>${r.pos}</td><td style="text-align:left">${r.club}</td><td>${r.z}</td><td>${r.v}</td><td>${r.r}</td><td>${r.p}</td><td>${r.gf}:${r.ga}</td><td><b>${r.pts}</b></td></tr>`).join('')+`</table></div>`+L:`<div class="card">Tabuľku sa zatiaľ nepodarilo načítať automaticky.</div>`+L}
   if(tab==='me'){const s=F.playerStats(en);h=`<div class="grid"><div class="stat b"><b>${s.played}</b>odohraných</div><div class="stat g"><b>${s.goals}</b>⚽ góly</div><div class="stat"><b>${s.assists}</b>🎯 asistencie</div></div>
    <div class="card"><a href="${F.PROFILES[pid].url}" target="_blank" rel="noopener">Profil na Sportnete ↗</a></div>`;
    h+=ms.filter(m=>(en[m.id]||{}).played).reverse().map(row).join('')}
   $('#v').innerHTML=h;
 }
-function edit(id){const m=all().find(x=>x.id===id),e=E()[id]||{},v=F.view(m,e);
-  $('#dlg').innerHTML=`<h2>${v.opp}</h2><div class="note">${fd(m.date)} ${m.time||''}</div>
+function edit(id){const m=all().find(x=>x.id===id),e=E()[id]||{},v=F.view(m,e),man=(S.manual||[]).some(x=>x.id===id);
+  $('#dlg').innerHTML=`<h2>${v.opp}</h2>${man?`<label>Dátum a čas</label><div class="row"><input type="date" id="md" value="${m.date}"><input type="time" id="mt" value="${m.time||''}"></div><label>Súper</label><input type="text" id="mo2" value="${v.opp.replace(/"/g,'&quot;')}"><label><input type="checkbox" id="mh" ${v.homeOurs?'checked':''}> Doma</label>`:`<div class="note">${fd(m.date)} ${m.time||''}</div>`}
   <label><input type="checkbox" id="p" ${e.played?'checked':''}> ✅ Hral som</label>
   <div class="row"><div><label>⚽ Góly</label><input type="number" min="0" id="g" value="${e.goals||0}"></div><div><label>🎯 Asistencie</label><input type="number" min="0" id="a" value="${e.assists||0}"></div></div>
   <label>Aký dojem z zápasu?</label><div class="moods" id="mo">${['😀','🙂','😐','🙁'].map(x=>`<button type="button" class="${e.mood===x?'on':''}">${x}</button>`).join('')}</div>
   <input type="text" id="n" placeholder="Poznámka (voliteľné)" value="${(e.note||'').replace(/"/g,'&quot;')}" style="margin-top:8px">
   <label>Výsledok (naše : súper)</label><div class="row"><input type="number" min="0" id="gf" value="${v.gf??''}"><input type="number" min="0" id="ga" value="${v.ga??''}"></div>
-  <div class="row" style="margin-top:14px"><button class="btn o" id="x">Zrušiť</button><button class="btn" id="ok">💾 Uložiť</button></div>`;
+  <div class="row" style="margin-top:14px"><button class="btn o" id="x">Zrušiť</button><button class="btn" id="del" style="background:var(--r)">🗑 ${man?'Zmazať zápas':'Vymazať záznam'}</button><button class="btn" id="ok">💾 Uložiť</button></div>`;
   let mood=e.mood||'';$('#mo').onclick=ev=>{if(ev.target.tagName!=='BUTTON')return;mood=ev.target.textContent;[...$('#mo').children].forEach(b=>b.classList.toggle('on',b===ev.target))};
   $('#x').onclick=()=>$('#dlg').close();
-  $('#ok').onclick=()=>{E()[id]={played:$('#p').checked,goals:+$('#g').value||0,assists:+$('#a').value||0,mood,note:$('#n').value,gf:$('#gf').value,ga:$('#ga').value};save();$('#dlg').close();render()};
+  $('#del').onclick=()=>{if(!confirm(man?'Naozaj zmazať tento zápas aj so záznamom?':'Vymazať tvoj záznam k tomuto zápasu (góly, asistencie, dojem, ručný výsledok)?'))return;if(man)S.manual=S.manual.filter(x=>x.id!==id);delete E()[id];save();$('#dlg').close();render()};
+  $('#ok').onclick=()=>{if(man){const o=$('#mo2').value.trim(),d=$('#md').value;if(!o||!d){alert('Vyplň dátum a súpera');return}const us='OŠK Chorvátsky Grob',hm=$('#mh').checked;Object.assign(m,{date:d,time:$('#mt').value,home:hm?us:o,away:hm?o:us})}E()[id]={played:$('#p').checked,goals:+$('#g').value||0,assists:+$('#a').value||0,mood,note:$('#n').value,gf:$('#gf').value,ga:$('#ga').value};save();$('#dlg').close();render()};
   $('#dlg').showModal()}
-function addMatch(){$('#dlg').innerHTML=`<h2>➕ Nový zápas</h2><label>Dátum</label><input type="date" id="d"><label>Súper</label><input type="text" id="o">
+function addMatch(){$('#dlg').innerHTML=`<h2>➕ Nový zápas</h2><label>Dátum a čas</label><div class="row"><input type="date" id="d"><input type="time" id="t"></div><label>Súper</label><input type="text" id="o">
   <label><input type="checkbox" id="h" checked> Doma</label><div class="row" style="margin-top:14px"><button class="btn o" id="x">Zrušiť</button><button class="btn" id="ok">Pridať</button></div>`;
   $('#x').onclick=()=>$('#dlg').close();
   $('#ok').onclick=()=>{const d=$('#d').value,o=$('#o').value.trim();if(!d||!o)return;const us='OŠK Chorvátsky Grob',hm=$('#h').checked;
-    (S.manual=S.manual||[]).push({id:'m'+Date.now(),date:d,time:'',home:hm?us:o,away:hm?o:us,hs:null,as:null});save();$('#dlg').close();render()};
+    (S.manual=S.manual||[]).push({id:'m'+Date.now(),date:d,time:$('#t').value,home:hm?us:o,away:hm?o:us,hs:null,as:null});save();$('#dlg').close();render()};
   $('#dlg').showModal()}
 document.addEventListener('click',ev=>{const t=ev.target.closest('[data-t]'),c=ev.target.closest('[data-id]');
   if(t){tab=t.dataset.t;render()}else if(c)edit(c.dataset.id);else if(ev.target.id==='add')addMatch()});
 $('#who').innerHTML=Object.entries(F.PROFILES).map(([k,p])=>`<option value="${k}">${p.name} (${p.team.split(' ')[0]})</option>`).join('');
-function start(){$('#who').value=pid;S=load();sched=[];resu=[];render();refresh()}
+function start(){$('#who').value=pid;S=load();sched=[];resu=[];tbl=null;if(tab==='tbl'&&!F.PROFILES[pid].tablePart)tab='prog';render();refresh()}
 $('#who').onchange=e=>{pid=e.target.value;localStorage.setItem('futbal:last',pid);start()};
 start();
 </script></body></html>
