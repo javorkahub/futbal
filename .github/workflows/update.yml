@@ -1,0 +1,22 @@
+name: Aktualizácia údajov zo Sportnetu
+on:
+  schedule: [{ cron: '0 * * * *' }]
+  workflow_dispatch: {}
+  push: { branches: [main], paths: ['scripts/**', 'app.js'] }
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: node test.js
+      - run: node scripts/fetch.js
+      - name: Uloženie zmien
+        run: |
+          git config user.name "futbal-bot"
+          git config user.email "futbal-bot@users.noreply.github.com"
+          git add data
+          git diff --cached --quiet || (git commit -m "Aktualizácia údajov" && git push)
