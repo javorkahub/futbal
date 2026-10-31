@@ -1,5 +1,151 @@
 {
- "updated": "2026-10-31T13:37:41.036Z",
- "program": [],
- "vysledky": []
+ "updated": "2026-10-31T13:53:09.911Z",
+ "program": [
+  {
+   "id": "6a573505d14e91f303d8d153",
+   "date": "2026-11-08",
+   "time": "11:30",
+   "home": "FK Slovan Ivanka pri Dunaji",
+   "away": "OŠK Chorvátsky Grob B",
+   "hs": null,
+   "as": null
+  },
+  {
+   "id": "6a573505d14e91f303d8d252",
+   "date": "2026-11-14",
+   "time": "09:30",
+   "home": "OŠK Chorvátsky Grob B",
+   "away": "ŠK Slovan Bratislava futbal D",
+   "hs": null,
+   "as": null
+  },
+  {
+   "id": "6a573505d14e91f303d8d28f",
+   "date": "2027-03-13",
+   "time": "09:30",
+   "home": "OŠK Chorvátsky Grob B",
+   "away": "PŠC Pezinok C",
+   "hs": null,
+   "as": null
+  },
+  {
+   "id": "6a573505d14e91f303d8d350",
+   "date": "2027-03-20",
+   "time": "09:30",
+   "home": "OŠK Chorvátsky Grob B",
+   "away": "MŠK Kráľová pri Senci",
+   "hs": null,
+   "as": null
+  },
+  {
+   "id": "6a573505d14e91f303d8d46a",
+   "date": "2027-04-04",
+   "time": "10:00",
+   "home": "FK Inter Bratislava B",
+   "away": "OŠK Chorvátsky Grob B",
+   "hs": null,
+   "as": null
+  },
+  {
+   "id": "6a573506d14e91f303d8d526",
+   "date": "2027-04-11",
+   "time": "15:00",
+   "home": "SDM Domino C",
+   "away": "OŠK Chorvátsky Grob B",
+   "hs": null,
+   "as": null
+  },
+  {
+   "id": "6a573506d14e91f303d8d684",
+   "date": "2027-04-17",
+   "time": "09:30",
+   "home": "OŠK Chorvátsky Grob B",
+   "away": "OP Proschool Bratislava",
+   "hs": null,
+   "as": null
+  },
+  {
+   "id": "6a573506d14e91f303d8d7ed",
+   "date": "2027-04-25",
+   "time": "11:00",
+   "home": "Petržalka United",
+   "away": "OŠK Chorvátsky Grob B",
+   "hs": null,
+   "as": null
+  }
+ ],
+ "vysledky": [
+  {
+   "id": "6a573504d14e91f303d8cec1",
+   "date": "2026-10-24",
+   "time": "14:30",
+   "home": "MŠK Senec B",
+   "away": "OŠK Chorvátsky Grob B",
+   "hs": 1,
+   "as": 0
+  },
+  {
+   "id": "6a573504d14e91f303d8cf0b",
+   "date": "2026-10-21",
+   "time": "17:00",
+   "home": "OŠK Chorvátsky Grob B",
+   "away": "NŠK 1922 Bratislava B",
+   "hs": 5,
+   "as": 3
+  },
+  {
+   "id": "6a573504d14e91f303d8ccf1",
+   "date": "2026-10-18",
+   "time": "09:30",
+   "home": "OŠK Chorvátsky Grob B",
+   "away": "Škola futbalu Veľký Biel",
+   "hs": 1,
+   "as": 6
+  },
+  {
+   "id": "6a573504d14e91f303d8ce19",
+   "date": "2026-10-11",
+   "time": "12:30",
+   "home": "CFK Pezinok - Cajla",
+   "away": "OŠK Chorvátsky Grob B",
+   "hs": 2,
+   "as": 0
+  },
+  {
+   "id": "6a573504d14e91f303d8cb59",
+   "date": "2026-10-03",
+   "time": "09:30",
+   "home": "OŠK Chorvátsky Grob B",
+   "away": "Petržalka United",
+   "hs": 0,
+   "as": 2
+  },
+  {
+   "id": "6a573504d14e91f303d8cce2",
+   "date": "2026-09-27",
+   "time": "13:30",
+   "home": "OP Proschool Bratislava",
+   "away": "OŠK Chorvátsky Grob B",
+   "hs": 1,
+   "as": 2
+  },
+  {
+   "id": "6a573503d14e91f303d8cae6",
+   "date": "2026-09-19",
+   "time": "09:30",
+   "home": "OŠK Chorvátsky Grob B",
+   "away": "SDM Domino C",
+   "hs": 3,
+   "as": 1
+  },
+  {
+   "id": "6a573503d14e91f303d8c97e",
+   "date": "2026-09-12",
+   "time": "09:30",
+   "home": "OŠK Chorvátsky Grob B",
+   "away": "FK Inter Bratislava B",
+   "hs": 2,
+   "as": 10
+  }
+ ]
 }
