@@ -47,18 +47,15 @@ const TABS={prog:'📅 Program',res:'🏆 Výsledky',team:'📊 Tím',me:'⭐ Mo
 let pid=localStorage.getItem('futbal:last')||'tomas',tab='prog',sched=[],resu=[],S;
 const load=()=>{try{return JSON.parse(localStorage.getItem('futbal:'+pid))||{}}catch(e){return{}}};
 const save=()=>localStorage.setItem('futbal:'+pid,JSON.stringify(S));
-async function get(url){
-  const e=encodeURIComponent(url),ways=[url,'https://corsproxy.io/?url='+e,'https://api.allorigins.win/raw?url='+e];
-  for(const w of ways){try{const c=new AbortController();setTimeout(()=>c.abort(),9000);
-    const r=await fetch(w,{signal:c.signal});if(r.ok){const t=await r.text();if(t.includes('/zapas/')){localStorage.setItem('futbal:cache:'+url,t);return t}}}catch(e){}}
-  return localStorage.getItem('futbal:cache:'+url);
-}
 async function refresh(){
-  $('#st').textContent='⏳ Načítavam údaje zo Sportnetu…';
-  const b=F.BASE+F.PROFILES[pid].slug+'/';
-  const [p,r]=await Promise.all([get(b+'program/'),get(b+'vysledky/')]);
-  sched=p?F.parseMatches(p):[];resu=r?F.parseMatches(r):[];
-  $('#st').textContent=(p||r)?'✅ Údaje aktualizované':'⚠️ Sportnet sa nepodarilo načítať – ukazujem len ručné údaje';
+  $('#st').textContent='⏳ Načítavam údaje…';
+  try{
+    const r=await fetch('data/'+F.PROFILES[pid].slug+'.json?'+Date.now());
+    if(!r.ok)throw 0;
+    const d=await r.json();sched=d.program||[];resu=d.vysledky||[];
+    const t=new Date(d.updated);
+    $('#st').textContent='✅ Údaje zo Sportnetu z '+t.toLocaleString('sk-SK',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'});
+  }catch(e){$('#st').textContent='⚠️ Údaje zo Sportnetu sa nepodarilo načítať – ukazujem len ručné údaje'}
   render();
 }
 const all=()=>{const seen={},l=[];[...sched,...resu,...(S.manual||[])].forEach(m=>{if(!seen[m.id]){seen[m.id]=1;l.push(m)}});return l.sort((a,b)=>a.date.localeCompare(b.date))};
