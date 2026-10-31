@@ -127,7 +127,7 @@ cat > 'app.js' <<'__EOF__'
       if (words.slice(0, k).join(' ') === words.slice(k, 2 * k).join(' ')) return [k, words.slice(0, k).join(' ')];
     return null;
   }
-  function parseMatches(html) {
+  function parseAnchors(html) {
     const out = [], re = /<a\b[^>]*?href=["']([^"']*\/zapas\/([0-9a-f]+)\/?)["'][^>]*>([\s\S]*?)<\/a>/g;
     let m;
     while ((m = re.exec(html))) {
@@ -151,6 +151,27 @@ cat > 'app.js' <<'__EOF__'
       out.push({ id: m[2], date: `${year}-${d[2]}-${d[1]}`, time: d[3], home: h[1], away: a[1], hs, as, url: m[1] });
     }
     return out;
+  }
+  // Sportnet vkladá zápasy do stránky ako JSON (Next.js); z neho sa údaje čítajú spoľahlivo
+  const TZ = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Bratislava', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+  function parseJson(html) {
+    const t = html.replace(/\\/g, '');
+    const re = /"id":"([0-9a-f]{24})",[^{}]*?"date":"\$D([^"]+)","homeTeam":\{"name":"([^"]+)","score":"([^"]*)"[\s\S]*?"awayTeam":\{"name":"([^"]+)","score":"([^"]*)"/g;
+    const seen = {}, out = [];
+    let m;
+    while ((m = re.exec(t))) {
+      if (seen[m[1]]) continue;
+      seen[m[1]] = 1;
+      const p = {};
+      TZ.formatToParts(new Date(m[2])).forEach(x => { p[x.type] = x.value; });
+      const hs = /^\d+$/.test(m[4]) ? +m[4] : null, as = /^\d+$/.test(m[6]) ? +m[6] : null;
+      out.push({ id: m[1], date: `${p.year}-${p.month}-${p.day}`, time: `${p.hour}:${p.minute}`, home: m[3], away: m[5], hs: hs === null || as === null ? null : hs, as: hs === null || as === null ? null : as });
+    }
+    return out;
+  }
+  function parseMatches(html) {
+    const j = parseJson(html);
+    return j.length ? j : parseAnchors(html);
   }
   const isOurs = n => n.includes(CLUB);
   // normalise to our perspective; manual entry (e.g. {gf,ga}) wins over website score
@@ -203,6 +224,14 @@ assert.strictEqual(t.gp, 4); assert.strictEqual(t.pts, 7);
 assert.strictEqual(F.teamStats(ms, { aa1: { gf: 0, ga: 1 } }).pts, 1);
 // player stats count only played matches
 assert.deepStrictEqual(F.playerStats({ a: { played: true, goals: 2, assists: 1 }, b: { played: false, goals: 9 }, c: { played: true, goals: '1' } }), { played: 2, goals: 3, assists: 1 });
+// formát JSON zo Sportnetu (Next.js, s escapovanými úvodzovkami)
+const J = '{\\"matches\\":[{\\"id\\":\\"6a573504d14e91f303d8cec1\\",\\"detailUrl\\":\\"/z/x/zapas/6a573504d14e91f303d8cec1/\\",\\"appSpace\\":\\"BA\\",\\"key\\":\\"k\\",\\"date\\":\\"$D2026-10-24T12:30:00.000Z\\",\\"homeTeam\\":{\\"name\\":\\"MŠK Senec B\\",\\"score\\":\\"1\\",\\"logo\\":{\\"src\\":\\"u\\"},\\"meta\\":{\\"_id\\":\\"x\\"}},\\"awayTeam\\":{\\"name\\":\\"OŠK Chorvátsky Grob B\\",\\"score\\":\\"0\\",\\"logo\\":{}}},' +
+  '{\\"id\\":\\"6a573505d14e91f303d8d153\\",\\"appSpace\\":\\"BA\\",\\"detailUrl\\":\\"/z/x/zapas/6a573505d14e91f303d8d153/\\",\\"key\\":\\"k\\",\\"date\\":\\"$D2026-11-08T10:30:00.000Z\\",\\"homeTeam\\":{\\"name\\":\\"FK Slovan Ivanka pri Dunaji\\",\\"score\\":\\"-\\"},\\"awayTeam\\":{\\"name\\":\\"OŠK Chorvátsky Grob B\\",\\"score\\":\\"-\\"}}]}';
+const jm = F.parseMatches(J + J);
+assert.strictEqual(jm.length, 2);
+assert.deepStrictEqual([jm[0].date, jm[0].time, jm[0].hs, jm[0].as], ['2026-10-24', '14:30', 1, 0]);
+assert.deepStrictEqual([jm[1].date, jm[1].time, jm[1].hs], ['2026-11-08', '11:30', null]);
+assert.strictEqual(F.view(jm[0], {}).gf, 0);
 console.log('✅ Všetky testy prešli');
 __EOF__
 
@@ -280,7 +309,7 @@ __EOF__
 touch data/.gitkeep
 node test.js
 git add -A
-git commit -m "Oprava workflow a načítania zápasov" || true
+git commit -m "Načítanie zápasov z JSON zo Sportnetu" || true
 git pull --rebase origin main
 git push
 echo "Hotovo. V Actions spusti Run workflow."

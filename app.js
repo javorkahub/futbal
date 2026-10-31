@@ -11,7 +11,7 @@
       if (words.slice(0, k).join(' ') === words.slice(k, 2 * k).join(' ')) return [k, words.slice(0, k).join(' ')];
     return null;
   }
-  function parseMatches(html) {
+  function parseAnchors(html) {
     const out = [], re = /<a\b[^>]*?href=["']([^"']*\/zapas\/([0-9a-f]+)\/?)["'][^>]*>([\s\S]*?)<\/a>/g;
     let m;
     while ((m = re.exec(html))) {
@@ -35,6 +35,27 @@
       out.push({ id: m[2], date: `${year}-${d[2]}-${d[1]}`, time: d[3], home: h[1], away: a[1], hs, as, url: m[1] });
     }
     return out;
+  }
+  // Sportnet vkladá zápasy do stránky ako JSON (Next.js); z neho sa údaje čítajú spoľahlivo
+  const TZ = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Bratislava', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+  function parseJson(html) {
+    const t = html.replace(/\\/g, '');
+    const re = /"id":"([0-9a-f]{24})",[^{}]*?"date":"\$D([^"]+)","homeTeam":\{"name":"([^"]+)","score":"([^"]*)"[\s\S]*?"awayTeam":\{"name":"([^"]+)","score":"([^"]*)"/g;
+    const seen = {}, out = [];
+    let m;
+    while ((m = re.exec(t))) {
+      if (seen[m[1]]) continue;
+      seen[m[1]] = 1;
+      const p = {};
+      TZ.formatToParts(new Date(m[2])).forEach(x => { p[x.type] = x.value; });
+      const hs = /^\d+$/.test(m[4]) ? +m[4] : null, as = /^\d+$/.test(m[6]) ? +m[6] : null;
+      out.push({ id: m[1], date: `${p.year}-${p.month}-${p.day}`, time: `${p.hour}:${p.minute}`, home: m[3], away: m[5], hs: hs === null || as === null ? null : hs, as: hs === null || as === null ? null : as });
+    }
+    return out;
+  }
+  function parseMatches(html) {
+    const j = parseJson(html);
+    return j.length ? j : parseAnchors(html);
   }
   const isOurs = n => n.includes(CLUB);
   // normalise to our perspective; manual entry (e.g. {gf,ga}) wins over website score
