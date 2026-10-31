@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="sk"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Futbal – OŠK Chorvátsky Grob</title>
+<link rel="icon" href="https://api.sportnet.online/data/ppo/osk-chorvatsky-grob.futbalnet.sk/1ce80f11-7192-455d-8f75-24094029b911.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--g:#1faa59;--dg:#0d6b37;--y:#ffd23f;--r:#ff5a5f;--b:#2d7ff9;--w:#fff;--ink:#12361f}
+*{box-sizing:border-box}
+body{margin:0;font-family:Fredoka,"Trebuchet MS",sans-serif;color:var(--ink);
+background:repeating-linear-gradient(90deg,#27b862 0 60px,#2fc46c 60px 120px);min-height:100vh}
+header{background:var(--dg);color:var(--w);padding:10px 14px;display:flex;align-items:center;gap:12px;border-bottom:6px solid var(--y)}
+header img{width:54px;height:54px;border-radius:50%;border:3px solid var(--y);background:#fff}
+header h1{font-size:1.2rem;margin:0;flex:1}
+select{font:inherit;font-weight:700;font-size:1rem;padding:8px 10px;border-radius:14px;border:3px solid var(--y);background:#fff;color:var(--ink)}
+nav{display:flex;gap:6px;padding:10px;overflow-x:auto}
+nav button{flex:1;min-width:92px;font:inherit;font-weight:700;padding:10px 6px;border:0;border-radius:16px;background:#fff;color:var(--dg);cursor:pointer;box-shadow:0 4px 0 #0003}
+nav button.on{background:var(--y);transform:translateY(2px)}
+main{max-width:760px;margin:0 auto;padding:0 10px 40px}
+.card{background:#fff;border-radius:20px;padding:12px 14px;margin:10px 0;box-shadow:0 4px 0 #0003}
+.m{display:flex;align-items:center;gap:10px;cursor:pointer}
+.m .d{font-size:.8rem;color:#567;min-width:62px}.m .t{flex:1;font-weight:600}
+.sc{font-weight:700;font-size:1.2rem;padding:4px 12px;border-radius:12px;background:#eee}
+.sc.W{background:#b9f3cf}.sc.D{background:#ffeaa0}.sc.L{background:#ffc9cb}
+.tag{font-size:1.1rem}.note{color:#567;font-size:.85rem}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--y);border-radius:18px;text-align:center;padding:12px 4px}
+.stat b{display:block;font-size:2rem}.stat.b{background:#bfe0ff}.stat.r{background:#ffc9cb}.stat.g{background:#b9f3cf}
+dialog{border:0;border-radius:24px;padding:18px;width:min(94vw,440px);box-shadow:0 0 0 9999px #0008}
+label{display:block;font-weight:600;margin:10px 0 4px}
+input[type=number],input[type=text],input[type=date]{font:inherit;width:100%;padding:9px;border:3px solid #cde;border-radius:12px}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.moods{display:flex;gap:6px}.moods button{flex:1;font-size:1.8rem;padding:6px;border:3px solid #cde;border-radius:14px;background:#fff;cursor:pointer}
+.moods button.on{border-color:var(--g);background:#d9f9e5}
+.btn{font:inherit;font-weight:700;border:0;border-radius:16px;padding:11px 16px;background:var(--g);color:#fff;cursor:pointer;box-shadow:0 4px 0 #0003}
+.btn.o{background:#e7edf2;color:var(--ink)}
+#st{color:#fff;text-align:center;font-size:.85rem;padding:4px}
+</style></head><body>
+<header><img src="https://api.sportnet.online/data/ppo/osk-chorvatsky-grob.futbalnet.sk/1ce80f11-7192-455d-8f75-24094029b911.jpeg" alt="Logo OŠK Chorvátsky Grob">
+<h1>⚽ Futbalový denník</h1><select id="who" aria-label="Hráč"></select></header>
+<nav id="nav"></nav><div id="st"></div><main id="v"></main>
+<dialog id="dlg"></dialog>
+<script src="app.js"></script>
+<script>
+const F=window.Futbal,$=s=>document.querySelector(s);
+const TABS={prog:'📅 Program',res:'🏆 Výsledky',team:'📊 Tím',me:'⭐ Moje štatistiky'};
+let pid=localStorage.getItem('futbal:last')||'tomas',tab='prog',sched=[],resu=[],S;
+const load=()=>{try{return JSON.parse(localStorage.getItem('futbal:'+pid))||{}}catch(e){return{}}};
+const save=()=>localStorage.setItem('futbal:'+pid,JSON.stringify(S));
+async function get(url){
+  const e=encodeURIComponent(url),ways=[url,'https://corsproxy.io/?url='+e,'https://api.allorigins.win/raw?url='+e];
+  for(const w of ways){try{const c=new AbortController();setTimeout(()=>c.abort(),9000);
+    const r=await fetch(w,{signal:c.signal});if(r.ok){const t=await r.text();if(t.includes('/zapas/')){localStorage.setItem('futbal:cache:'+url,t);return t}}}catch(e){}}
+  return localStorage.getItem('futbal:cache:'+url);
+}
+async function refresh(){
+  $('#st').textContent='⏳ Načítavam údaje zo Sportnetu…';
+  const b=F.BASE+F.PROFILES[pid].slug+'/';
+  const [p,r]=await Promise.all([get(b+'program/'),get(b+'vysledky/')]);
+  sched=p?F.parseMatches(p):[];resu=r?F.parseMatches(r):[];
+  $('#st').textContent=(p||r)?'✅ Údaje aktualizované':'⚠️ Sportnet sa nepodarilo načítať – ukazujem len ručné údaje';
+  render();
+}
+const all=()=>{const seen={},l=[];[...sched,...resu,...(S.manual||[])].forEach(m=>{if(!seen[m.id]){seen[m.id]=1;l.push(m)}});return l.sort((a,b)=>a.date.localeCompare(b.date))};
+const E=()=>S.entries=S.entries||{};
+const fd=d=>d.slice(8)+'.'+d.slice(5,7)+'.';
+function row(m){const e=E()[m.id]||{},v=F.view(m,e),r=v.gf===null?'':v.gf>v.ga?'W':v.gf===v.ga?'D':'L';
+  return `<div class="card m" data-id="${m.id}"><div class="d">${fd(m.date)}<br>${m.time||''}</div>
+  <div class="t">${v.homeOurs?'🏠':'🚌'} ${v.opp}<div class="note">${e.played?`⚽${e.goals||0} 🎯${e.assists||0} ${e.mood||''}`:'klikni a zapíš'}</div></div>
+  <div class="sc ${r}">${v.gf===null?'–':v.gf+':'+v.ga}</div></div>`}
+function render(){
+  $('#nav').innerHTML=Object.entries(TABS).map(([k,t])=>`<button data-t="${k}" class="${k===tab?'on':''}">${t}</button>`).join('');
+  const ms=all(),today=new Date().toISOString().slice(0,10),en=E();let h='';
+  if(tab==='prog'){const l=ms.filter(m=>m.date>=today&&F.view(m,en[m.id]).gf===null);
+    h=l.map(row).join('')||'<div class="card">Žiadne naplánované zápasy 🎉</div>';
+    h+='<button class="btn" id="add">➕ Pridať zápas ručne</button>'}
+  if(tab==='res'){const l=ms.filter(m=>F.view(m,en[m.id]).gf!==null).reverse();h=l.map(row).join('')||'<div class="card">Zatiaľ žiadne výsledky</div>'}
+  if(tab==='team'){const s=F.teamStats(ms,en);h=`<div class="card"><b>${F.PROFILES[pid].team}</b><div class="note">Výhra 3 body · remíza 1 bod · prehra 0 bodov</div></div><div class="grid">
+   <div class="stat"><b>${s.gp}</b>zápasov</div><div class="stat g"><b>${s.pts}</b>bodov</div><div class="stat b"><b>${s.w}-${s.d}-${s.l}</b>V-R-P</div>
+   <div class="stat g"><b>${s.gf}</b>strelené góly</div><div class="stat r"><b>${s.ga}</b>inkasované</div><div class="stat"><b>${s.gf-s.ga}</b>skóre rozdiel</div></div>`}
+  if(tab==='me'){const s=F.playerStats(en);h=`<div class="grid"><div class="stat b"><b>${s.played}</b>odohraných</div><div class="stat g"><b>${s.goals}</b>⚽ góly</div><div class="stat"><b>${s.assists}</b>🎯 asistencie</div></div>
+   <div class="card"><a href="${F.PROFILES[pid].url}" target="_blank" rel="noopener">Profil na Sportnete ↗</a></div>`;
+   h+=ms.filter(m=>(en[m.id]||{}).played).reverse().map(row).join('')}
+  $('#v').innerHTML=h;
+}
+function edit(id){const m=all().find(x=>x.id===id),e=E()[id]||{},v=F.view(m,e);
+  $('#dlg').innerHTML=`<h2>${v.opp}</h2><div class="note">${fd(m.date)} ${m.time||''}</div>
+  <label><input type="checkbox" id="p" ${e.played?'checked':''}> ✅ Hral som</label>
+  <div class="row"><div><label>⚽ Góly</label><input type="number" min="0" id="g" value="${e.goals||0}"></div><div><label>🎯 Asistencie</label><input type="number" min="0" id="a" value="${e.assists||0}"></div></div>
+  <label>Aký dojem z zápasu?</label><div class="moods" id="mo">${['😀','🙂','😐','🙁'].map(x=>`<button type="button" class="${e.mood===x?'on':''}">${x}</button>`).join('')}</div>
+  <input type="text" id="n" placeholder="Poznámka (voliteľné)" value="${(e.note||'').replace(/"/g,'&quot;')}" style="margin-top:8px">
+  <label>Výsledok (naše : súper)</label><div class="row"><input type="number" min="0" id="gf" value="${v.gf??''}"><input type="number" min="0" id="ga" value="${v.ga??''}"></div>
+  <div class="row" style="margin-top:14px"><button class="btn o" id="x">Zrušiť</button><button class="btn" id="ok">💾 Uložiť</button></div>`;
+  let mood=e.mood||'';$('#mo').onclick=ev=>{if(ev.target.tagName!=='BUTTON')return;mood=ev.target.textContent;[...$('#mo').children].forEach(b=>b.classList.toggle('on',b===ev.target))};
+  $('#x').onclick=()=>$('#dlg').close();
+  $('#ok').onclick=()=>{E()[id]={played:$('#p').checked,goals:+$('#g').value||0,assists:+$('#a').value||0,mood,note:$('#n').value,gf:$('#gf').value,ga:$('#ga').value};save();$('#dlg').close();render()};
+  $('#dlg').showModal()}
+function addMatch(){$('#dlg').innerHTML=`<h2>➕ Nový zápas</h2><label>Dátum</label><input type="date" id="d"><label>Súper</label><input type="text" id="o">
+  <label><input type="checkbox" id="h" checked> Doma</label><div class="row" style="margin-top:14px"><button class="btn o" id="x">Zrušiť</button><button class="btn" id="ok">Pridať</button></div>`;
+  $('#x').onclick=()=>$('#dlg').close();
+  $('#ok').onclick=()=>{const d=$('#d').value,o=$('#o').value.trim();if(!d||!o)return;const us='OŠK Chorvátsky Grob',hm=$('#h').checked;
+    (S.manual=S.manual||[]).push({id:'m'+Date.now(),date:d,time:'',home:hm?us:o,away:hm?o:us,hs:null,as:null});save();$('#dlg').close();render()};
+  $('#dlg').showModal()}
+document.addEventListener('click',ev=>{const t=ev.target.closest('[data-t]'),c=ev.target.closest('[data-id]');
+  if(t){tab=t.dataset.t;render()}else if(c)edit(c.dataset.id);else if(ev.target.id==='add')addMatch()});
+$('#who').innerHTML=Object.entries(F.PROFILES).map(([k,p])=>`<option value="${k}">${p.name} (${p.team.split(' ')[0]})</option>`).join('');
+function start(){$('#who').value=pid;S=load();sched=[];resu=[];render();refresh()}
+$('#who').onchange=e=>{pid=e.target.value;localStorage.setItem('futbal:last',pid);start()};
+start();
+</script></body></html>
