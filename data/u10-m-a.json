@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-07T11:23:30.970Z",
+ "updated": "2026-11-07T12:28:48.247Z",
  "program": [
   {
    "id": "6a7f40637aef80a8fdadae3a",
@@ -7,8 +7,8 @@
    "time": "11:30",
    "home": "OŠK Chorvátsky Grob",
    "away": "FK Slovan Ivanka pri Dunaji",
-   "hs": null,
-   "as": null
+   "hs": 0,
+   "as": 0
   },
   {
    "id": "6a7f40597aef80a8fdad92cd",
