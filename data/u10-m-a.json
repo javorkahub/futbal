@@ -1,15 +1,6 @@
 {
- "updated": "2026-11-07T23:22:10.640Z",
+ "updated": "2026-11-08T00:26:56.937Z",
  "program": [
-  {
-   "id": "6a7f40637aef80a8fdadae3a",
-   "date": "2026-11-07",
-   "time": "11:30",
-   "home": "OŠK Chorvátsky Grob",
-   "away": "FK Slovan Ivanka pri Dunaji",
-   "hs": 0,
-   "as": 0
-  },
   {
    "id": "6a7f40597aef80a8fdad92cd",
    "date": "2027-04-03",
@@ -70,6 +61,15 @@
    "time": "09:00",
    "home": "OŠK Slovenský Grob",
    "away": "OŠK Chorvátsky Grob",
+   "hs": null,
+   "as": null
+  },
+  {
+   "id": "6a7f40687aef80a8fdadb8f5",
+   "date": "2027-05-22",
+   "time": "09:30",
+   "home": "OŠK Chorvátsky Grob",
+   "away": "PŠC Pezinok",
    "hs": null,
    "as": null
   }
