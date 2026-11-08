@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-08T12:28:07.417Z",
+ "updated": "2026-11-08T13:38:28.222Z",
  "program": [
   {
    "id": "6a573505d14e91f303d8d252",
@@ -76,6 +76,15 @@
  ],
  "vysledky": [
   {
+   "id": "6a573505d14e91f303d8d153",
+   "date": "2026-11-08",
+   "time": "11:30",
+   "home": "FK Slovan Ivanka pri Dunaji",
+   "away": "OŠK Chorvátsky Grob B",
+   "hs": 6,
+   "as": 3
+  },
+  {
    "id": "6a573504d14e91f303d8cec1",
    "date": "2026-10-24",
    "time": "14:30",
@@ -137,24 +146,6 @@
    "away": "SDM Domino C",
    "hs": 3,
    "as": 1
-  },
-  {
-   "id": "6a573503d14e91f303d8c97e",
-   "date": "2026-09-12",
-   "time": "09:30",
-   "home": "OŠK Chorvátsky Grob B",
-   "away": "FK Inter Bratislava B",
-   "hs": 2,
-   "as": 10
-  },
-  {
-   "id": "6a573505d14e91f303d8d153",
-   "date": "2026-11-08",
-   "time": "11:30",
-   "home": "FK Slovan Ivanka pri Dunaji",
-   "away": "OŠK Chorvátsky Grob B",
-   "hs": 6,
-   "as": 3
   }
  ]
 }
