@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-09T11:42:39.348Z",
+ "updated": "2026-11-09T12:46:29.229Z",
  "program": [
   {
    "id": "6a7f40597aef80a8fdad92cd",
@@ -76,6 +76,24 @@
  ],
  "vysledky": [
   {
+   "id": "6a7f40637aef80a8fdadae3a",
+   "date": "2026-11-07",
+   "time": "11:30",
+   "home": "OŠK Chorvátsky Grob",
+   "away": "FK Slovan Ivanka pri Dunaji",
+   "hs": 0,
+   "as": 0
+  },
+  {
+   "id": "6a7f405f7aef80a8fdada195",
+   "date": "2026-10-24",
+   "time": "11:00",
+   "home": "PŠC Pezinok",
+   "away": "OŠK Chorvátsky Grob",
+   "hs": 0,
+   "as": 0
+  },
+  {
    "id": "6a7f405f7aef80a8fdada2fc",
    "date": "2026-10-17",
    "time": "09:30",
@@ -126,33 +144,6 @@
    "time": "14:00",
    "home": "OŠK Chorvátsky Grob",
    "away": "ŠK Igram",
-   "hs": 0,
-   "as": 0
-  },
-  {
-   "id": "6a7f405d7aef80a8fdad9bda",
-   "date": "2026-09-05",
-   "time": "10:00",
-   "home": "TJ Malinovo",
-   "away": "OŠK Chorvátsky Grob",
-   "hs": 0,
-   "as": 0
-  },
-  {
-   "id": "6a7f40637aef80a8fdadae3a",
-   "date": "2026-11-07",
-   "time": "11:30",
-   "home": "OŠK Chorvátsky Grob",
-   "away": "FK Slovan Ivanka pri Dunaji",
-   "hs": 0,
-   "as": 0
-  },
-  {
-   "id": "6a7f405f7aef80a8fdada195",
-   "date": "2026-10-24",
-   "time": "11:00",
-   "home": "PŠC Pezinok",
-   "away": "OŠK Chorvátsky Grob",
    "hs": 0,
    "as": 0
   }
