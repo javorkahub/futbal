@@ -1,15 +1,6 @@
 {
- "updated": "2026-11-14T09:31:33.540Z",
+ "updated": "2026-11-14T10:27:19.747Z",
  "program": [
-  {
-   "id": "6a573505d14e91f303d8d252",
-   "date": "2026-11-14",
-   "time": "09:00",
-   "home": "ŠK Slovan Bratislava futbal D",
-   "away": "OŠK Chorvátsky Grob B",
-   "hs": 0,
-   "as": 0
-  },
   {
    "id": "6a573505d14e91f303d8d28f",
    "date": "2027-03-13",
@@ -72,9 +63,27 @@
    "away": "CFK Pezinok - Cajla",
    "hs": null,
    "as": null
+  },
+  {
+   "id": "6a573506d14e91f303d8d8c1",
+   "date": "2027-05-08",
+   "time": "11:00",
+   "home": "Škola futbalu Veľký Biel",
+   "away": "OŠK Chorvátsky Grob B",
+   "hs": null,
+   "as": null
   }
  ],
  "vysledky": [
+  {
+   "id": "6a573505d14e91f303d8d252",
+   "date": "2026-11-14",
+   "time": "09:00",
+   "home": "ŠK Slovan Bratislava futbal D",
+   "away": "OŠK Chorvátsky Grob B",
+   "hs": 1,
+   "as": 2
+  },
   {
    "id": "6a573505d14e91f303d8d153",
    "date": "2026-11-08",
@@ -137,15 +146,6 @@
    "away": "OŠK Chorvátsky Grob B",
    "hs": 1,
    "as": 2
-  },
-  {
-   "id": "6a573503d14e91f303d8cae6",
-   "date": "2026-09-19",
-   "time": "09:30",
-   "home": "OŠK Chorvátsky Grob B",
-   "away": "SDM Domino C",
-   "hs": 3,
-   "as": 1
   }
  ]
 }
