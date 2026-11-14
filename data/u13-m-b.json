@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-14T13:40:30.412Z",
+ "updated": "2026-11-14T14:30:34.258Z",
  "program": [
   {
    "id": "6a573505d14e91f303d8d28f",
@@ -69,6 +69,15 @@
    "date": "2027-05-08",
    "time": "11:00",
    "home": "Škola futbalu Veľký Biel",
+   "away": "OŠK Chorvátsky Grob B",
+   "hs": null,
+   "as": null
+  },
+  {
+   "id": "6a573505d14e91f303d8d252",
+   "date": "2026-11-14",
+   "time": "09:00",
+   "home": "ŠK Slovan Bratislava futbal D",
    "away": "OŠK Chorvátsky Grob B",
    "hs": null,
    "as": null
