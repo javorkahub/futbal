@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,800&amp;family=Geist:wght@400..750&amp;display=swap">
-<link rel="stylesheet" href="style.css?v=training">
+<link rel="stylesheet" href="style.css?v=training-v2">
 </head><body>
 <header class="masthead">
   <div class="shell masthead-inner">
@@ -32,7 +32,7 @@
   <div id="v"></div>
 </main>
 <dialog id="dlg"></dialog>
-<script src="app.js?v=training"></script>
+<script src="app.js?v=training-v2"></script>
 <script>
 const F=window.Futbal,$=s=>document.querySelector(s);
 const TABS={prog:'Program',res:'Výsledky',training:'Plán tréningov',team:'Tím',me:'Moje štatistiky',tbl:'Tabuľka'};
@@ -107,11 +107,18 @@ function renderTrainingPlan(dates){
   }));
   const sessions=plans.flatMap(({player,name,sessions})=>sessions.map(session=>({...session,player,name})));
   const calendar=dates.map((date,day)=>{
-    const blocks=sessions.filter(session=>session.day===day).sort((a,b)=>a.start.localeCompare(b.start)).map(session=>
-      `<li class="training-block ${session.player}" title="${session.name} · ${session.start}–${session.end} · ${session.type}">
+    const blocks=sessions.filter(session=>session.day===day).sort((a,b)=>a.start.localeCompare(b.start)).map(session=>{
+      const venue=session.venue==='Klokan'?'OŠK':'ZŠ';
+      const icon=session.type.startsWith('Futbal')?'⚽':'<span class="training-dumbbell" aria-hidden="true"></span>';
+      return `<li class="training-block ${session.player}" title="${session.name} · ${session.start}–${session.end} · ${session.venue} · ${session.type}">
         <span class="training-name">${session.name}</span>
-        <span>${session.start}<span class="training-end">–${session.end}</span></span>
-      </li>`).join('');
+        <span>${session.start}–${session.end}</span>
+        <span class="training-meta">
+          <span class="training-icon" role="img" aria-label="${session.type}">${icon}</span>
+          <abbr title="${session.venue}">${venue}</abbr>
+        </span>
+      </li>`;
+    }).join('');
     return `<li class="training-day">
       <div class="training-day-heading"><abbr title="${weekdays[day]}">${weekdays[day].slice(0,2)}</abbr>
         <time datetime="${date}">${fd(date)}</time></div>
@@ -138,6 +145,11 @@ function renderTrainingPlan(dates){
       <h3 id="training-range">${range}</h3><div class="training-legend">${legend}</div>
     </div>
     <ol class="training-week" aria-label="Týždenný prehľad tréningov">${calendar}</ol>
+    <div class="training-legend training-explanations" aria-label="Vysvetlivky">
+      <span>OŠK · Klokan</span><span>ZŠ · ZŠ Javorka</span>
+      <span><span class="training-icon" aria-hidden="true">⚽</span> Futbal</span>
+      <span><span class="training-dumbbell" aria-hidden="true"></span> Kondičný tréning a atletika</span>
+    </div>
   </section><div class="training-lists">${tables}</div>`;
 }
 

@@ -26,7 +26,7 @@
     ],
     oliver: [
       { day: 0, start: '18:30', end: '20:00', venue: 'ZŠ Javorka', type: 'Futbal – hala' },
-      { day: 1, start: '18:00', end: '19:30', venue: 'Klokan', type: 'Futbal' },
+      { day: 2, start: '18:00', end: '19:30', venue: 'Klokan', type: 'Futbal' },
       { day: 4, start: '16:30', end: '17:30', venue: 'Klokan', type: 'Atletika' }
     ]
   };

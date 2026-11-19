@@ -304,6 +304,27 @@ button.m:hover { border-color: #8bac96; background: #fbfef9; }
   white-space: nowrap;
 }
 .training-name { font-weight: 750; }
+.training-meta, .training-explanations > span { display: flex; align-items: center; gap: 6px; }
+.training-meta abbr { font-size: 11px; font-weight: 750; text-decoration: none; }
+.training-icon { display: inline-flex; align-items: center; font-size: 12px; line-height: 1; }
+.training-dumbbell {
+  display: inline-block;
+  position: relative;
+  width: 14px;
+  height: 12px;
+  background: linear-gradient(currentColor, currentColor) center / 100% 2px no-repeat;
+}
+.training-dumbbell::before, .training-dumbbell::after {
+  content: "";
+  position: absolute;
+  inset-block: 2px;
+  width: 4px;
+  border-radius: 1px;
+  background: currentColor;
+}
+.training-dumbbell::before { inset-inline-start: 0; }
+.training-dumbbell::after { inset-inline-end: 0; }
+.training-explanations { flex-wrap: wrap; gap: 5px 14px; margin-top: 12px; color: var(--muted); font-size: 12px; font-weight: 500; }
 .training-empty { display: block; color: var(--muted); text-align: center; }
 .training-lists {
   display: grid;
@@ -365,7 +386,12 @@ input:is([type=number], [type=text], [type=date], [type=time]) {
 
 @media (max-width: 760px) {
   .training-lists { grid-template-columns: minmax(0, 1fr); gap: 0; }
-  .training-end { display: none; }
+  .training-week { grid-template-columns: 1fr; gap: 5px; }
+  .training-day { display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 8px; min-height: 0; padding: 5px; }
+  .training-day-heading { flex-direction: column; align-items: flex-start; gap: 0; }
+  .training-blocks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .training-block { font-size: 12px; }
+  .training-empty { text-align: left; align-self: center; }
 }
 
 @media (max-width: 640px) {
@@ -385,11 +411,6 @@ input:is([type=number], [type=text], [type=date], [type=time]) {
   .data-table th, .data-table td { padding-block: 8px; }
   .player-table { font-size: 13px; }
   .player-table thead th { font-size: 11px; }
-  .training-week { gap: 4px; }
-  .training-day { min-height: 92px; padding: 4px 2px; }
-  .training-day-heading { flex-direction: column; align-items: center; padding: 0 0 5px; font-size: 10px; gap: 1px; }
-  .training-block { padding: 3px 0; border-inline-start-width: 2px; text-align: center; font-size: 9px; }
-  .training-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   .training-table { font-size: 12px; }
   .training-table th, .training-table td { padding-inline: 4px; }
 }
