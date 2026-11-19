@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-19T14:08:00.520Z",
+ "updated": "2026-11-19T15:45:34.861Z",
  "program": [
   {
    "id": "6a573505d14e91f303d8d28f",
@@ -146,6 +146,162 @@
    "away": "OŠK Chorvátsky Grob B",
    "hs": 1,
    "as": 2
+  }
+ ],
+ "table": [
+  {
+   "pos": 1,
+   "club": "MŠK Senec B",
+   "z": 13,
+   "v": 11,
+   "r": 1,
+   "p": 1,
+   "gf": 48,
+   "ga": 13,
+   "pts": 34
+  },
+  {
+   "pos": 2,
+   "club": "PŠC Pezinok C",
+   "z": 13,
+   "v": 10,
+   "r": 1,
+   "p": 2,
+   "gf": 52,
+   "ga": 13,
+   "pts": 31
+  },
+  {
+   "pos": 3,
+   "club": "FK Slovan Ivanka pri Dunaji",
+   "z": 13,
+   "v": 7,
+   "r": 4,
+   "p": 2,
+   "gf": 45,
+   "ga": 29,
+   "pts": 25
+  },
+  {
+   "pos": 4,
+   "club": "MŠK Kráľová pri Senci",
+   "z": 13,
+   "v": 7,
+   "r": 3,
+   "p": 3,
+   "gf": 41,
+   "ga": 26,
+   "pts": 24
+  },
+  {
+   "pos": 5,
+   "club": "SDM Domino C",
+   "z": 13,
+   "v": 6,
+   "r": 3,
+   "p": 4,
+   "gf": 39,
+   "ga": 27,
+   "pts": 21
+  },
+  {
+   "pos": 6,
+   "club": "NŠK 1922 Bratislava B",
+   "z": 13,
+   "v": 7,
+   "r": 0,
+   "p": 6,
+   "gf": 49,
+   "ga": 28,
+   "pts": 21
+  },
+  {
+   "pos": 7,
+   "club": "FK Inter Bratislava B",
+   "z": 13,
+   "v": 6,
+   "r": 3,
+   "p": 4,
+   "gf": 46,
+   "ga": 26,
+   "pts": 21
+  },
+  {
+   "pos": 8,
+   "club": "CFK Pezinok - Cajla",
+   "z": 13,
+   "v": 6,
+   "r": 1,
+   "p": 6,
+   "gf": 32,
+   "ga": 32,
+   "pts": 19
+  },
+  {
+   "pos": 9,
+   "club": "OŠK Chorvátsky Grob B",
+   "z": 13,
+   "v": 6,
+   "r": 0,
+   "p": 7,
+   "gf": 34,
+   "ga": 42,
+   "pts": 18
+  },
+  {
+   "pos": 10,
+   "club": "ŠK Slovan Bratislava futbal D",
+   "z": 13,
+   "v": 5,
+   "r": 3,
+   "p": 5,
+   "gf": 38,
+   "ga": 22,
+   "pts": 18
+  },
+  {
+   "pos": 11,
+   "club": "Škola futbalu Veľký Biel",
+   "z": 13,
+   "v": 3,
+   "r": 3,
+   "p": 7,
+   "gf": 32,
+   "ga": 42,
+   "pts": 12
+  },
+  {
+   "pos": 12,
+   "club": "OP Proschool Bratislava",
+   "z": 13,
+   "v": 3,
+   "r": 1,
+   "p": 9,
+   "gf": 22,
+   "ga": 37,
+   "pts": 10
+  },
+  {
+   "pos": 13,
+   "club": "Petržalka United",
+   "z": 13,
+   "v": 2,
+   "r": 1,
+   "p": 10,
+   "gf": 11,
+   "ga": 63,
+   "pts": 7
+  },
+  {
+   "pos": 14,
+   "club": "FK Vajnory B",
+   "z": 13,
+   "v": 0,
+   "r": 0,
+   "p": 13,
+   "gf": 17,
+   "ga": 106,
+   "pts": 0
   }
  ]
 }
