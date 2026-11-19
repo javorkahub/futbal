@@ -17,6 +17,19 @@
       url: 'https://sportnet.sme.sk/futbalnet/clen/68dad51f94d10f7e9dd6a3be/oliver-mraz/'
     }
   };
+  // Deň v pláne je posun od pondelka.
+  const TRAINING = {
+    tomas: [
+      { day: 0, start: '17:00', end: '18:30', venue: 'Klokan', type: 'Futbal' },
+      { day: 1, start: '17:00', end: '18:00', venue: 'Klokan', type: 'Kondičný' },
+      { day: 4, start: '17:00', end: '18:30', venue: 'Klokan', type: 'Futbal' }
+    ],
+    oliver: [
+      { day: 0, start: '18:30', end: '20:00', venue: 'ZŠ Javorka', type: 'Futbal – hala' },
+      { day: 1, start: '18:00', end: '19:30', venue: 'Klokan', type: 'Futbal' },
+      { day: 4, start: '16:30', end: '17:30', venue: 'Klokan', type: 'Atletika' }
+    ]
+  };
 
   function halve(words) {
     for (let k = 1; k * 2 <= words.length; k++)
@@ -53,6 +66,18 @@
     const parts = {};
     TZ.formatToParts(new Date(value)).forEach(part => { parts[part.type] = part.value; });
     return { date: `${parts.year}-${parts.month}-${parts.day}`, time: `${parts.hour}:${parts.minute}` };
+  }
+
+  function trainingWeek(now = new Date()) {
+    // Najprv určíme dnešný dátum v Bratislave, potom počítame iba kalendárne dni.
+    const monday = new Date(formatKickoff(now).date);
+    const weekday = (monday.getUTCDay() + 6) % 7;
+    monday.setUTCDate(monday.getUTCDate() - weekday + (weekday >= 5 ? 7 : 0));
+    return Array.from({ length: 7 }, (_, day) => {
+      const date = new Date(monday);
+      date.setUTCDate(date.getUTCDate() + day);
+      return date.toISOString().slice(0, 10);
+    });
   }
 
   // Sportnet vkladá zápasy do stránky aj ako JSON (Next.js).
@@ -111,6 +136,6 @@
     Object.values(entries).forEach(e => { if (e.played) { s.played++; s.goals += +e.goals || 0; s.assists += +e.assists || 0; } });
     return s;
   }
-  const API = { PROFILES, BASE, formatKickoff, parseMatches, parseTable, view, teamStats, playerStats, isOurs };
+  const API = { PROFILES, BASE, TRAINING, trainingWeek, formatKickoff, parseMatches, parseTable, view, teamStats, playerStats, isOurs };
   if (typeof module !== 'undefined') module.exports = API; else root.Futbal = API;
 })(typeof window !== 'undefined' ? window : globalThis);

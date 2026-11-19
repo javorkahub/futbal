@@ -242,6 +242,81 @@ button.m:hover { border-color: #8bac96; background: #fbfef9; }
 .card-mark.red { background: #ee7c82; border-color: #8e4050; }
 .journal { margin-top: 18px; }
 
+.training-heading { align-items: center; }
+.training-legend { display: flex; gap: 14px; font-size: 13px; font-weight: 650; }
+.training-key { display: inline-flex; align-items: baseline; gap: 7px; }
+.training-key::before {
+  content: "";
+  width: .72em;
+  height: .72em;
+  border-radius: 3px;
+  background: var(--player-accent);
+}
+.training-key.tomas, .training-block.tomas {
+  --player-accent: #287344;
+  --player-tint: #dfefe1;
+  --player-ink: #174a2b;
+}
+.training-key.oliver, .training-block.oliver {
+  --player-accent: #365da3;
+  --player-tint: #e4ecfc;
+  --player-ink: #214476;
+}
+.training-week, .training-blocks { list-style: none; margin: 0; padding: 0; }
+.training-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+.training-day {
+  min-height: 130px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f5f8f3;
+}
+.training-day-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 3px;
+  padding: 2px 3px 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.training-day-heading abbr {
+  color: var(--ink);
+  font-weight: 750;
+  text-decoration: none;
+}
+.training-blocks { display: grid; gap: 4px; }
+.training-block {
+  display: grid;
+  padding: 4px 5px 4px 7px;
+  border-inline-start: 3px solid var(--player-accent);
+  border-radius: 5px;
+  color: var(--player-ink);
+  background: var(--player-tint);
+  font-size: clamp(10px, 1.4vw, 13px);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.training-name { font-weight: 750; }
+.training-empty { display: block; color: var(--muted); text-align: center; }
+.training-lists {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 12px;
+}
+.training-list h3 { margin-bottom: 12px; }
+.training-table { font-size: 14px; }
+.training-table thead th { white-space: normal; }
+.training-table time { display: block; color: var(--muted); font-size: 12px; font-weight: 500; }
+.training-time { white-space: nowrap; }
+
 dialog {
   width: min(calc(100% - 24px), 456px);
   max-height: calc(100% - 32px);
@@ -288,6 +363,11 @@ input:is([type=number], [type=text], [type=date], [type=time]) {
 .btn.o { background: #e5ece6; color: var(--ink); }
 .btn.danger { background: var(--red); }
 
+@media (max-width: 760px) {
+  .training-lists { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .training-end { display: none; }
+}
+
 @media (max-width: 640px) {
   .shell { width: calc(100% - 28px); }
   .masthead-inner { min-height: 62px; }
@@ -305,6 +385,13 @@ input:is([type=number], [type=text], [type=date], [type=time]) {
   .data-table th, .data-table td { padding-block: 8px; }
   .player-table { font-size: 13px; }
   .player-table thead th { font-size: 11px; }
+  .training-week { gap: 4px; }
+  .training-day { min-height: 92px; padding: 4px 2px; }
+  .training-day-heading { flex-direction: column; align-items: center; padding: 0 0 5px; font-size: 10px; gap: 1px; }
+  .training-block { padding: 3px 0; border-inline-start-width: 2px; text-align: center; font-size: 9px; }
+  .training-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .training-table { font-size: 12px; }
+  .training-table th, .training-table td { padding-inline: 4px; }
 }
 
 @media (max-width: 360px) {

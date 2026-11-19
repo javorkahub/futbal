@@ -32,4 +32,16 @@ const tb = F.parseTable(tr(['2', 'OŠK Chorvátsky Grob B', 'OŠK Chorvátsky Gr
 assert.strictEqual(tb.length, 2);
 assert.deepStrictEqual([tb[0].pos, tb[0].club, tb[0].v, tb[0].gf, tb[0].ga, tb[0].pts], [2, 'OŠK Chorvátsky Grob B', 10, 61, 25, 31]);
 assert.strictEqual(tb[1].club, 'Senec Football Academy B');
+
+// V Bratislave sa plán prepína o polnoci z piatka na sobotu, aj v letnom čase.
+assert.strictEqual(F.trainingWeek('2026-11-20T22:59:59Z')[0], '2026-11-16');
+assert.deepStrictEqual(F.trainingWeek('2026-11-20T23:00:00Z'), [
+  '2026-11-23', '2026-11-24', '2026-11-25', '2026-11-26',
+  '2026-11-27', '2026-11-28', '2026-11-29'
+]);
+assert.strictEqual(F.trainingWeek('2026-11-22T22:59:59Z')[0], '2026-11-23');
+assert.strictEqual(F.trainingWeek('2026-11-22T23:00:00Z')[0], '2026-11-23');
+assert.strictEqual(F.trainingWeek('2027-04-02T21:59:59Z')[0], '2027-03-29');
+assert.strictEqual(F.trainingWeek('2027-04-02T22:00:00Z')[0], '2027-04-05');
+assert.strictEqual(F.trainingWeek('2026-12-26T12:00:00Z')[6], '2027-01-03');
 console.log('✅ Všetky testy prešli');

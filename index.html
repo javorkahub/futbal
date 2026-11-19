@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,800&amp;family=Geist:wght@400..750&amp;display=swap">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=training">
 </head><body>
 <header class="masthead">
   <div class="shell masthead-inner">
@@ -32,12 +32,16 @@
   <div id="v"></div>
 </main>
 <dialog id="dlg"></dialog>
-<script src="app.js"></script>
+<script src="app.js?v=training"></script>
 <script>
 const F=window.Futbal,$=s=>document.querySelector(s);
-const TABS={prog:'Program',res:'Výsledky',team:'Tím',me:'Moje štatistiky',tbl:'Tabuľka'};
-let tbl=null,officialPlayer=null,pid=localStorage.getItem('futbal:last')||'tomas',tab='prog',sched=[],resu=[],S;
+const TABS={prog:'Program',res:'Výsledky',training:'Plán tréningov',team:'Tím',me:'Moje štatistiky',tbl:'Tabuľka'};
+const TRAINING_HASH='#plan-treningov';
+const weekdays=['Pondelok','Utorok','Streda','Štvrtok','Piatok','Sobota','Nedeľa'];
+const weekDateFormat=new Intl.DateTimeFormat('sk-SK',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
+let tbl=null,officialPlayer=null,pid=localStorage.getItem('futbal:last')||'tomas',tab=location.hash===TRAINING_HASH?'training':'prog',sched=[],resu=[],S;
 let refreshSequence=0;
+let shownTrainingMonday;
 const load=()=>{try{return JSON.parse(localStorage.getItem('futbal:'+pid))||{}}catch(e){return{}}};
 const save=()=>localStorage.setItem('futbal:'+pid,JSON.stringify(S));
 async function refresh(){
@@ -96,10 +100,57 @@ function renderStandings(profile){
   return `<section class="card"><div class="panel-title"><h3>MZM B</h3>${link}</div>${content}</section>`;
 }
 
+function renderTrainingPlan(dates){
+  shownTrainingMonday=dates[0];
+  const plans=Object.entries(F.TRAINING).map(([player,sessions])=>({
+    player, name:F.PROFILES[player].name.split(' ')[0], sessions
+  }));
+  const sessions=plans.flatMap(({player,name,sessions})=>sessions.map(session=>({...session,player,name})));
+  const calendar=dates.map((date,day)=>{
+    const blocks=sessions.filter(session=>session.day===day).sort((a,b)=>a.start.localeCompare(b.start)).map(session=>
+      `<li class="training-block ${session.player}" title="${session.name} · ${session.start}–${session.end} · ${session.type}">
+        <span class="training-name">${session.name}</span>
+        <span>${session.start}<span class="training-end">–${session.end}</span></span>
+      </li>`).join('');
+    return `<li class="training-day">
+      <div class="training-day-heading"><abbr title="${weekdays[day]}">${weekdays[day].slice(0,2)}</abbr>
+        <time datetime="${date}">${fd(date)}</time></div>
+      ${blocks?`<ul class="training-blocks">${blocks}</ul>`:'<span class="training-empty" aria-label="Bez tréningu">–</span>'}
+    </li>`;
+  }).join('');
+  const legend=plans.map(({player,name})=>`<span class="training-key ${player}">${name}</span>`).join('');
+  const range=weekDateFormat.formatRange(new Date(dates[0]),new Date(dates[6]));
+  const tables=plans.map(({player,name,sessions})=>{
+    const rows=sessions.map(({day,start,end,venue,type})=>`<tr>
+      <th scope="row" class="text">${weekdays[day]}<time datetime="${dates[day]}">${fd(dates[day])}</time></th>
+      <td class="training-time">${start}–${end}</td><td class="text">${venue}</td><td class="text">${type}</td>
+    </tr>`).join('');
+    return `<section class="card training-list" aria-labelledby="training-${player}">
+      <h3 class="training-key ${player}" id="training-${player}">${name}</h3>
+      <table class="data-table training-table">
+        <thead><tr><th scope="col" class="text">Deň</th><th scope="col">Čas</th><th scope="col" class="text">Ihrisko</th><th scope="col" class="text">Typ tréningu</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </section>`;
+  }).join('');
+  return `<section class="card" aria-labelledby="training-range">
+    <div class="panel-title training-heading">
+      <h3 id="training-range">${range}</h3><div class="training-legend">${legend}</div>
+    </div>
+    <ol class="training-week" aria-label="Týždenný prehľad tréningov">${calendar}</ol>
+  </section><div class="training-lists">${tables}</div>`;
+}
+
 function render(){
   const profile=F.PROFILES[pid];
   $('#section-title').textContent=TABS[tab];
+  $('#pitch-team').textContent=tab==='training'?'Tomáš a Oliver':profile.team;
+  $('#st').hidden=tab==='training';
   $('#nav').innerHTML=Object.entries(TABS).filter(([k])=>k!=='tbl'||profile.tablePart).map(([k,t])=>`<button type="button" data-t="${k}"${k===tab?' class="on" aria-current="true"':''}>${t}</button>`).join('');
+  if(tab==='training'){
+    $('#v').innerHTML=renderTrainingPlan(F.trainingWeek());
+    return;
+  }
   const ms=all(),today=new Date().toISOString().slice(0,10),en=E();let h='';
   if(tab==='prog'){const l=ms.filter(m=>!m.closed&&(m.closed===false||m.date>=today)&&F.view(m,en[m.id]).gf===null)
     .sort((a,b)=>Number(!a.date)-Number(!b.date));
@@ -139,12 +190,29 @@ function addMatch(){$('#dlg').innerHTML=`<h2>➕ Nový zápas</h2><label>Dátum 
     (S.manual=S.manual||[]).push({id:'m'+Date.now(),date:d,time:$('#t').value,home:hm?us:o,away:hm?o:us,hs:null,as:null});save();$('#dlg').close();render()};
   $('#dlg').showModal()}
 document.addEventListener('click',ev=>{const t=ev.target.closest('[data-t]'),c=ev.target.closest('[data-id]');
-  if(t){tab=t.dataset.t;render()}else if(c)edit(c.dataset.id);else if(ev.target.id==='add')addMatch()});
+  if(t){
+    tab=t.dataset.t;
+    if(tab==='training')history.replaceState(null,'',TRAINING_HASH);
+    else if(location.hash===TRAINING_HASH)history.replaceState(null,'',location.pathname+location.search);
+    render();
+  }else if(c)edit(c.dataset.id);else if(ev.target.id==='add')addMatch()});
+window.addEventListener('hashchange',()=>{
+  if(location.hash===TRAINING_HASH)tab='training';
+  else if(tab==='training')tab='prog';
+  render();
+});
+function refreshTrainingWeek(){
+  if(tab!=='training')return;
+  const dates=F.trainingWeek();
+  if(dates[0]!==shownTrainingMonday)$('#v').innerHTML=renderTrainingPlan(dates);
+}
+setInterval(refreshTrainingWeek,60_000);
+document.addEventListener('visibilitychange',refreshTrainingWeek);
 $('#who').innerHTML=Object.entries(F.PROFILES).map(([k,p])=>`<option value="${k}">${p.name}</option>`).join('');
 function start(){
   if(!Object.hasOwn(F.PROFILES,pid))pid='tomas';
   const profile=F.PROFILES[pid];
-  $('#who').value=pid;$('#pitch-team').textContent=profile.team;
+  $('#who').value=pid;
   S=load();sched=[];resu=[];tbl=null;officialPlayer=null;
   if(tab==='tbl'&&!profile.tablePart)tab='prog';
   render();refresh();
