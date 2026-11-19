@@ -44,4 +44,11 @@ assert.strictEqual(F.trainingWeek('2026-11-22T23:00:00Z')[0], '2026-11-23');
 assert.strictEqual(F.trainingWeek('2027-04-02T21:59:59Z')[0], '2027-03-29');
 assert.strictEqual(F.trainingWeek('2027-04-02T22:00:00Z')[0], '2027-04-05');
 assert.strictEqual(F.trainingWeek('2026-12-26T12:00:00Z')[6], '2027-01-03');
+assert.deepStrictEqual(F.trainingOverlaps([
+  { start: 990, end: 1050 }, { start: 1020, end: 1110 },
+  { start: 1037, end: 1055 }, { start: 1110, end: 1200 }
+]), [{ start: 1020, end: 1055 }]);
+assert.deepStrictEqual(F.trainingOverlaps([
+  { start: 1020, end: 1080 }, { start: 1080, end: 1170 }
+]), []);
 console.log('✅ Všetky testy prešli');

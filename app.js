@@ -20,14 +20,15 @@
   // Deň v pláne je posun od pondelka.
   const TRAINING = {
     tomas: [
-      { day: 0, start: '17:00', end: '18:30', venue: 'Klokan', type: 'Futbal' },
-      { day: 1, start: '17:00', end: '18:00', venue: 'Klokan', type: 'Kondičný' },
-      { day: 4, start: '17:00', end: '18:30', venue: 'Klokan', type: 'Futbal' }
+      { id: 'tomas-football-mon', day: 0, start: '17:00', end: '18:30', venue: 'Klokan', type: 'Futbal', jersey: 'blue' },
+      { id: 'tomas-fitness-tue', day: 1, start: '17:00', end: '18:00', venue: 'Klokan', type: 'Kondičný', jersey: 'red' },
+      { id: 'tomas-english-wed', day: 2, start: '17:00', end: '18:00', venue: '', type: 'Angličtina', jersey: '' },
+      { id: 'tomas-football-fri', day: 4, start: '17:00', end: '18:30', venue: 'Klokan', type: 'Futbal', jersey: 'blue' }
     ],
     oliver: [
-      { day: 0, start: '18:30', end: '20:00', venue: 'ZŠ Javorka', type: 'Futbal – hala' },
-      { day: 2, start: '18:00', end: '19:30', venue: 'Klokan', type: 'Futbal' },
-      { day: 4, start: '16:30', end: '17:30', venue: 'Klokan', type: 'Atletika' }
+      { id: 'oliver-football-mon', day: 0, start: '18:30', end: '20:00', venue: 'ZŠ Javorka', type: 'Futbal – hala', jersey: 'blue' },
+      { id: 'oliver-football-wed', day: 2, start: '18:00', end: '19:30', venue: 'Klokan', type: 'Futbal', jersey: 'red' },
+      { id: 'oliver-athletics-fri', day: 4, start: '16:30', end: '17:30', venue: 'Klokan', type: 'Atletika', jersey: 'blue' }
     ]
   };
 
@@ -78,6 +79,24 @@
       date.setUTCDate(date.getUTCDate() + day);
       return date.toISOString().slice(0, 10);
     });
+  }
+
+  function trainingOverlaps(intervals) {
+    const boundaries = intervals.flatMap(({ start, end }) => [[start, 1], [end, -1]])
+      .sort((a, b) => a[0] - b[0]);
+    const overlaps = [];
+    let active = 0;
+    let previous = 0;
+    for (const [minute, delta] of boundaries) {
+      if (active > 1 && minute > previous) {
+        const last = overlaps.at(-1);
+        if (last?.end === previous) last.end = minute;
+        else overlaps.push({ start: previous, end: minute });
+      }
+      active += delta;
+      previous = minute;
+    }
+    return overlaps;
   }
 
   // Sportnet vkladá zápasy do stránky aj ako JSON (Next.js).
@@ -136,6 +155,6 @@
     Object.values(entries).forEach(e => { if (e.played) { s.played++; s.goals += +e.goals || 0; s.assists += +e.assists || 0; } });
     return s;
   }
-  const API = { PROFILES, BASE, TRAINING, trainingWeek, formatKickoff, parseMatches, parseTable, view, teamStats, playerStats, isOurs };
+  const API = { PROFILES, BASE, TRAINING, trainingWeek, trainingOverlaps, formatKickoff, parseMatches, parseTable, view, teamStats, playerStats, isOurs };
   if (typeof module !== 'undefined') module.exports = API; else root.Futbal = API;
 })(typeof window !== 'undefined' ? window : globalThis);

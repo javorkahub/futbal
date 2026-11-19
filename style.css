@@ -71,8 +71,8 @@ a:hover { text-decoration-thickness: 2px; }
   flex-direction: column;
   justify-content: center;
   gap: 4px;
-  min-height: clamp(176px, 26vw, 260px);
-  padding-block: 28px;
+  min-height: clamp(88px, 13vw, 130px);
+  padding-block: 14px;
 }
 .pitch-team {
   width: fit-content;
@@ -86,11 +86,11 @@ a:hover { text-decoration-thickness: 2px; }
 .pitch h1 {
   margin: 0;
   color: var(--white);
-  font: italic 800 clamp(56px, 9vw, 106px)/.92 var(--display);
+  font: italic 800 clamp(38px, 6vw, 70px)/.92 var(--display);
   letter-spacing: -.025em;
 }
 
-.navigation { background: var(--night); }
+.navigation { position: sticky; top: 0; z-index: 5; background: var(--night); }
 .navigation nav { display: flex; flex-wrap: wrap; gap: 4px 20px; }
 nav button {
   position: relative;
@@ -262,50 +262,70 @@ button.m:hover { border-color: #8bac96; background: #fbfef9; }
   --player-tint: #e4ecfc;
   --player-ink: #214476;
 }
-.training-week, .training-blocks { list-style: none; margin: 0; padding: 0; }
-.training-week {
+.training-key.overlap { --player-accent: #e1aa43; }
+.training-players { flex-wrap: wrap; margin-bottom: 12px; }
+.training-scroll-hint { display: none; }
+.training-scroll { overflow-x: auto; }
+.training-timeline { min-width: 460px; padding: 0 14px 3px 0; }
+.training-axis, .training-day { display: grid; grid-template-columns: 90px minmax(0, 1fr); }
+.training-axis { padding-bottom: 4px; }
+.training-ticks { position: relative; grid-column: 2; height: 19px; color: var(--muted); font-size: 11px; }
+.training-ticks span { position: absolute; transform: translateX(-50%); }
+.training-ticks span:first-child { transform: none; }
+.training-ticks span:last-child { transform: translateX(-100%); }
+.training-week { list-style: none; margin: 0; padding: 0; }
+.training-day { border-top: 1px solid var(--line); }
+.training-day:last-child { border-bottom: 1px solid var(--line); }
+.training-day-heading { display: flex; flex-direction: column; gap: 1px; padding: 6px 4px 6px 0; font-size: 12px; }
+.training-day-heading time { color: var(--muted); font-variant-numeric: tabular-nums; }
+.training-day-track {
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 8px;
-}
-.training-day {
-  min-height: 130px;
-  padding: 6px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  align-content: center;
+  gap: 4px;
+  min-height: 42px;
+  padding-block: 4px;
   background: #f5f8f3;
+  border-inline: 1px solid var(--line);
 }
-.training-day-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 3px;
-  padding: 2px 3px 6px;
-  color: var(--muted);
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
+.training-grid-line, .training-overlap { position: absolute; inset-block: 0; pointer-events: none; }
+.training-grid-line { border-left: 1px solid var(--line); }
+.training-overlap {
+  left: var(--start);
+  width: var(--duration);
+  background: repeating-linear-gradient(-45deg, #f6deb0 0 4px, #fbedce 4px 8px);
 }
-.training-day-heading abbr {
-  color: var(--ink);
-  font-weight: 750;
-  text-decoration: none;
-}
-.training-blocks { display: grid; gap: 4px; }
+.training-overlap-label { color: #6d4509; font-size: 10px; font-weight: 650; }
+.training-track { position: relative; height: 42px; }
 .training-block {
+  position: absolute;
+  top: 0;
+  left: var(--start);
+  width: var(--duration);
+  height: 100%;
   display: grid;
-  padding: 4px 5px 4px 7px;
-  border-inline-start: 3px solid var(--player-accent);
+  align-content: center;
+  overflow: hidden;
+  gap: 2px;
+  padding: 0;
+  border: 0;
   border-radius: 5px;
+  box-shadow: inset 2px 0 var(--player-accent);
   color: var(--player-ink);
   background: var(--player-tint);
-  font-size: clamp(10px, 1.4vw, 13px);
+  text-align: left;
+  font-size: 11px;
   font-weight: 650;
+  line-height: 1.2;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.training-name { font-weight: 750; }
+.training-block:hover { filter: brightness(.95); }
+.training-block:focus-visible { outline-offset: -2px; }
+.training-block > span { padding-inline: 6px; }
+.training-block-time { font-weight: 750; }
+.training-block-type { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .training-meta, .training-explanations > span { display: flex; align-items: center; gap: 6px; }
-.training-meta abbr { font-size: 11px; font-weight: 750; text-decoration: none; }
 .training-icon { display: inline-flex; align-items: center; font-size: 12px; line-height: 1; }
 .training-dumbbell {
   display: inline-block;
@@ -325,7 +345,21 @@ button.m:hover { border-color: #8bac96; background: #fbfef9; }
 .training-dumbbell::before { inset-inline-start: 0; }
 .training-dumbbell::after { inset-inline-end: 0; }
 .training-explanations { flex-wrap: wrap; gap: 5px 14px; margin-top: 12px; color: var(--muted); font-size: 12px; font-weight: 500; }
+.training-jersey {
+  display: inline-block;
+  flex: 0 0 14px;
+  width: 14px;
+  height: 13px;
+  vertical-align: -.12em;
+  clip-path: polygon(0 18%, 27% 0, 38% 10%, 62% 10%, 73% 0, 100% 18%, 86% 49%, 75% 43%, 75% 100%, 25% 100%, 25% 43%, 14% 49%);
+}
+.training-jersey.blue { background: #285db6; }
+.training-jersey.red { background: #bc263f; }
 .training-empty { display: block; color: var(--muted); text-align: center; }
+.training-edit { padding: 5px 2px; color: var(--green); background: transparent; border: 0; font-weight: 650; text-decoration: underline; }
+#training-dialog select { width: 100%; min-width: 0; padding: 8px 4px; border: 1px solid #a8bcae; border-radius: 7px; background: var(--white); color: var(--ink); }
+.training-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; margin-top: 16px; }
+.training-error { color: var(--red); }
 .training-lists {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -386,12 +420,14 @@ input:is([type=number], [type=text], [type=date], [type=time]) {
 
 @media (max-width: 760px) {
   .training-lists { grid-template-columns: minmax(0, 1fr); gap: 0; }
-  .training-week { grid-template-columns: 1fr; gap: 5px; }
-  .training-day { display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 8px; min-height: 0; padding: 5px; }
-  .training-day-heading { flex-direction: column; align-items: flex-start; gap: 0; }
-  .training-blocks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .training-block { font-size: 12px; }
-  .training-empty { text-align: left; align-self: center; }
+  .training-axis, .training-day { grid-template-columns: 75px minmax(0, 1fr); }
+}
+
+@media (max-width: 520px) {
+  .training-scroll-hint { display: block; margin: 0 0 8px; }
+  .training-axis::before, .training-day-heading { position: sticky; left: 0; z-index: 2; background: var(--white); }
+  .training-axis::before { content: ""; grid-column: 1; grid-row: 1; }
+  .training-ticks { grid-row: 1; }
 }
 
 @media (max-width: 640px) {

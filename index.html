@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,800&amp;family=Geist:wght@400..750&amp;display=swap">
-<link rel="stylesheet" href="style.css?v=training-v2">
+<link rel="stylesheet" href="style.css?v=training-v3">
 </head><body>
 <header class="masthead">
   <div class="shell masthead-inner">
@@ -32,16 +32,17 @@
   <div id="v"></div>
 </main>
 <dialog id="dlg"></dialog>
-<script src="app.js?v=training-v2"></script>
+<dialog id="training-dialog" aria-labelledby="training-editor-heading"></dialog>
+<script src="app.js?v=training-v3"></script>
+<script src="training.js?v=training-v3"></script>
 <script>
 const F=window.Futbal,$=s=>document.querySelector(s);
-const TABS={prog:'Program',res:'Výsledky',training:'Plán tréningov',team:'Tím',me:'Moje štatistiky',tbl:'Tabuľka'};
+const TABS={training:'Plán tréningov',prog:'Program',res:'Výsledky',team:'Tím',me:'Moje štatistiky',tbl:'Tabuľka'};
 const TRAINING_HASH='#plan-treningov';
-const weekdays=['Pondelok','Utorok','Streda','Štvrtok','Piatok','Sobota','Nedeľa'];
-const weekDateFormat=new Intl.DateTimeFormat('sk-SK',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
 let tbl=null,officialPlayer=null,pid=localStorage.getItem('futbal:last')||'tomas',tab=location.hash===TRAINING_HASH?'training':'prog',sched=[],resu=[],S;
 let refreshSequence=0;
 let shownTrainingMonday;
+const trainingPlan=window.createTrainingPlan($('#v'),$('#training-dialog'),()=>tab==='training');
 const load=()=>{try{return JSON.parse(localStorage.getItem('futbal:'+pid))||{}}catch(e){return{}}};
 const save=()=>localStorage.setItem('futbal:'+pid,JSON.stringify(S));
 async function refresh(){
@@ -100,57 +101,9 @@ function renderStandings(profile){
   return `<section class="card"><div class="panel-title"><h3>MZM B</h3>${link}</div>${content}</section>`;
 }
 
-function renderTrainingPlan(dates){
+function showTrainingPlan(dates){
   shownTrainingMonday=dates[0];
-  const plans=Object.entries(F.TRAINING).map(([player,sessions])=>({
-    player, name:F.PROFILES[player].name.split(' ')[0], sessions
-  }));
-  const sessions=plans.flatMap(({player,name,sessions})=>sessions.map(session=>({...session,player,name})));
-  const calendar=dates.map((date,day)=>{
-    const blocks=sessions.filter(session=>session.day===day).sort((a,b)=>a.start.localeCompare(b.start)).map(session=>{
-      const venue=session.venue==='Klokan'?'OŠK':'ZŠ';
-      const icon=session.type.startsWith('Futbal')?'⚽':'<span class="training-dumbbell" aria-hidden="true"></span>';
-      return `<li class="training-block ${session.player}" title="${session.name} · ${session.start}–${session.end} · ${session.venue} · ${session.type}">
-        <span class="training-name">${session.name}</span>
-        <span>${session.start}–${session.end}</span>
-        <span class="training-meta">
-          <span class="training-icon" role="img" aria-label="${session.type}">${icon}</span>
-          <abbr title="${session.venue}">${venue}</abbr>
-        </span>
-      </li>`;
-    }).join('');
-    return `<li class="training-day">
-      <div class="training-day-heading"><abbr title="${weekdays[day]}">${weekdays[day].slice(0,2)}</abbr>
-        <time datetime="${date}">${fd(date)}</time></div>
-      ${blocks?`<ul class="training-blocks">${blocks}</ul>`:'<span class="training-empty" aria-label="Bez tréningu">–</span>'}
-    </li>`;
-  }).join('');
-  const legend=plans.map(({player,name})=>`<span class="training-key ${player}">${name}</span>`).join('');
-  const range=weekDateFormat.formatRange(new Date(dates[0]),new Date(dates[6]));
-  const tables=plans.map(({player,name,sessions})=>{
-    const rows=sessions.map(({day,start,end,venue,type})=>`<tr>
-      <th scope="row" class="text">${weekdays[day]}<time datetime="${dates[day]}">${fd(dates[day])}</time></th>
-      <td class="training-time">${start}–${end}</td><td class="text">${venue}</td><td class="text">${type}</td>
-    </tr>`).join('');
-    return `<section class="card training-list" aria-labelledby="training-${player}">
-      <h3 class="training-key ${player}" id="training-${player}">${name}</h3>
-      <table class="data-table training-table">
-        <thead><tr><th scope="col" class="text">Deň</th><th scope="col">Čas</th><th scope="col" class="text">Ihrisko</th><th scope="col" class="text">Typ tréningu</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </section>`;
-  }).join('');
-  return `<section class="card" aria-labelledby="training-range">
-    <div class="panel-title training-heading">
-      <h3 id="training-range">${range}</h3><div class="training-legend">${legend}</div>
-    </div>
-    <ol class="training-week" aria-label="Týždenný prehľad tréningov">${calendar}</ol>
-    <div class="training-legend training-explanations" aria-label="Vysvetlivky">
-      <span>OŠK · Klokan</span><span>ZŠ · ZŠ Javorka</span>
-      <span><span class="training-icon" aria-hidden="true">⚽</span> Futbal</span>
-      <span><span class="training-dumbbell" aria-hidden="true"></span> Kondičný tréning a atletika</span>
-    </div>
-  </section><div class="training-lists">${tables}</div>`;
+  trainingPlan.show(dates);
 }
 
 function render(){
@@ -160,7 +113,7 @@ function render(){
   $('#st').hidden=tab==='training';
   $('#nav').innerHTML=Object.entries(TABS).filter(([k])=>k!=='tbl'||profile.tablePart).map(([k,t])=>`<button type="button" data-t="${k}"${k===tab?' class="on" aria-current="true"':''}>${t}</button>`).join('');
   if(tab==='training'){
-    $('#v').innerHTML=renderTrainingPlan(F.trainingWeek());
+    showTrainingPlan(F.trainingWeek());
     return;
   }
   const ms=all(),today=new Date().toISOString().slice(0,10),en=E();let h='';
@@ -216,7 +169,7 @@ window.addEventListener('hashchange',()=>{
 function refreshTrainingWeek(){
   if(tab!=='training')return;
   const dates=F.trainingWeek();
-  if(dates[0]!==shownTrainingMonday)$('#v').innerHTML=renderTrainingPlan(dates);
+  if(dates[0]!==shownTrainingMonday)showTrainingPlan(dates);
 }
 setInterval(refreshTrainingWeek,60_000);
 document.addEventListener('visibilitychange',refreshTrainingWeek);
