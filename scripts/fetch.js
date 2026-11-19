@@ -3,51 +3,67 @@ const fs = require('fs');
 const F = require('../app.js');
 const UA = 'Mozilla/5.0 (compatible; futbal-bot; +https://github.com)';
 
-async function html(url) {
-  const r = await fetch(url, { headers: { 'User-Agent': UA, 'Accept-Language': 'sk' } });
-  if (!r.ok) throw new Error(url + ' -> HTTP ' + r.status);
-  return r.text();
-}
-function diag(url, h, ms) {
-  console.log(url, '| dĺžka', h.length, '| zápasov na 1. strane:', ms.length);
-  const t = h.replace(/\\/g, '');
-  const keys = [...new Set((t.match(/"(next[A-Za-z]*|cursor|hasMore|hasNext[A-Za-z]*|total[A-Za-z]*|offset|limit|pageParams?|page|pageSize)":[^,}\]]{0,40}/g) || []))];
-  console.log('   kľúče na stránkovanie:', keys.slice(0, 15).join(' ; ') || '(žiadne)');
-  const i = t.indexOf('"pageParams"');
-  if (i >= 0) console.log('   okolie pageParams:', t.slice(Math.max(0, i - 200), i + 200));
-}
-// 1. strana + pokus o ďalšie strany (Sportnet ich dopĺňa tlačidlom „Načítať ďalšie“)
-async function load(url, extra) {
-  const h = await html(url);
-  let all = F.parseMatches(h);
-  if (!ms0(all)) console.log('   ukážka HTML:', h.slice(0, 300));
-  if (extra) diag(url, h, all);
-  else console.log(url, '| zápasov:', all.length);
-  if (!extra || !all.length) return all;
-  for (const param of ['page', 'p', 'strana']) {
-    let n = 2, added = 0;
-    for (; n <= 15; n++) {
-      let more = [];
-      try { more = F.parseMatches(await html(`${url}?${param}=${n}`)); } catch (e) { break; }
-      const seen = new Set(all.map(m => m.id));
-      const fresh = more.filter(m => !seen.has(m.id));
-      if (!fresh.length) break;
-      all = all.concat(fresh); added += fresh.length;
-    }
-    if (added) { console.log(`   ďalšie strany cez ?${param}= pridali ${added} zápasov`); break; }
-  }
-  if (all.length) console.log('   spolu zápasov:', all.length);
-  return all;
-}
-async function loadTable(profile) {
-  const url = `https://sutaze.api.sportnet.online/api/v2/public/competitions/${profile.tableCompetition}/parts/${profile.tablePart}/results?view=all`;
+const API = 'https://sutaze.api.sportnet.online/api/v2';
+const SEASON = '2026/2027';
+
+async function getJson(url) {
   const response = await fetch(url, {
     headers: { 'User-Agent': UA, Accept: 'application/json' },
     signal: AbortSignal.timeout(15_000)
   });
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  const { results } = await response.json();
-  if (!Array.isArray(results) || !results.some(row => row?.team?._id === profile.tableTeam)) {
+  if (!response.ok) throw new Error(`HTTP ${response.status} (${new URL(url).pathname})`);
+  return response.json();
+}
+
+function toMatch(match, teamId, closed) {
+  const { _id: id, startDate, homeTeam, awayTeam, season } = match;
+  if (!/^[0-9a-f]{24}$/.test(id) || season?.name !== SEASON ||
+      (homeTeam?._id !== teamId && awayTeam?._id !== teamId)) {
+    throw new Error('odpoveď obsahuje zápas mimo očakávaného tímu alebo sezóny');
+  }
+  const kickoff = startDate ? F.formatKickoff(startDate) : { date: '', time: '' };
+  const scored = closed && Number.isInteger(homeTeam?.score) && Number.isInteger(awayTeam?.score);
+  return {
+    id, ...kickoff,
+    home: homeTeam?.name || 'Súper neurčený',
+    away: awayTeam?.name || 'Súper neurčený',
+    homeOurs: homeTeam?._id === teamId,
+    closed,
+    hs: scored ? homeTeam.score : null,
+    as: scored ? awayTeam.score : null
+  };
+}
+
+async function loadMatches(teamId, closed) {
+  const url = new URL(API + '/futbalnet/matches');
+  url.search = new URLSearchParams({
+    teamId, seasonName: SEASON, closed: String(closed), limit: '100', sorter: 'dateFromAsc'
+  });
+  const all = new Map();
+  let offset = 0;
+  for (;;) {
+    url.searchParams.set('offset', String(offset));
+    const { matches, nextOffset, total } = await getJson(url);
+    if (!Array.isArray(matches)) throw new Error('odpoveď neobsahuje zoznam zápasov');
+    for (const item of matches) {
+      const match = toMatch(item, teamId, closed);
+      all.set(match.id, match);
+    }
+    if (nextOffset === null) {
+      if (all.size !== total) throw new Error('nepodarilo sa načítať všetky zápasy sezóny');
+      return [...all.values()];
+    }
+    if (!matches.length || !Number.isInteger(nextOffset) || nextOffset <= offset) {
+      throw new Error('neplatné stránkovanie zápasov');
+    }
+    offset = nextOffset;
+  }
+}
+
+async function loadTable(profile) {
+  const url = `${API}/public/competitions/${profile.tableCompetition}/parts/${profile.tablePart}/results?view=all`;
+  const { results } = await getJson(url);
+  if (!Array.isArray(results) || !results.some(row => row?.team?._id === profile.teamId)) {
     throw new Error('odpoveď neobsahuje tabuľku očakávanej skupiny');
   }
 
@@ -77,15 +93,16 @@ function readSavedTable(file) {
     }
   }
 }
-const ms0 = a => a.length > 0;
 
 (async () => {
   fs.mkdirSync('data', { recursive: true });
   let failed = 0;
   for (const p of Object.values(F.PROFILES)) {
     try {
-      const b = F.BASE + p.slug + '/';
-      const [program, vysledky] = await Promise.all([load(b + 'program/', true), load(b + 'vysledky/', true)]);
+      const [program, vysledky] = await Promise.all([
+        loadMatches(p.teamId, false),
+        loadMatches(p.teamId, true)
+      ]);
       if (!program.length && !vysledky.length) throw new Error('nenašli sa žiadne zápasy');
       const file = `data/${p.slug}.json`;
       let table;

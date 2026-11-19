@@ -4,12 +4,16 @@
   const PROFILES = {
     tomas: {
       name: 'Tomáš Mráz', team: 'U13 – Mladší žiaci B', slug: 'u13-m-b',
+      teamId: '6a3677cbe5a4847e62632076',
       tableCompetition: '6a217228233cdeb1e753a3b2',
       tablePart: '6a38d5270b755716bcd9bea3',
-      tableTeam: '6a3677cbe5a4847e62632076',
       url: 'https://sportnet.sme.sk/futbalnet/clen/68d95f7194d10f7e9dd67b25/tomas-mraz/'
     },
-    oliver: { name: 'Oliver Mráz', team: 'U10 – A', slug: 'u10-m-a', url: 'https://sportnet.sme.sk/futbalnet/clen/68dad51f94d10f7e9dd6a3be/oliver-mraz/' }
+    oliver: {
+      name: 'Oliver Mráz', team: 'U10 – A', slug: 'u10-m-a',
+      teamId: '6a366a25e5a4847e624e52a4',
+      url: 'https://sportnet.sme.sk/futbalnet/clen/68dad51f94d10f7e9dd6a3be/oliver-mraz/'
+    }
   };
 
   function halve(words) {
@@ -42,8 +46,14 @@
     }
     return out;
   }
-  // Sportnet vkladá zápasy do stránky ako JSON (Next.js); z neho sa údaje čítajú spoľahlivo
   const TZ = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Bratislava', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+  function formatKickoff(value) {
+    const parts = {};
+    TZ.formatToParts(new Date(value)).forEach(part => { parts[part.type] = part.value; });
+    return { date: `${parts.year}-${parts.month}-${parts.day}`, time: `${parts.hour}:${parts.minute}` };
+  }
+
+  // Sportnet vkladá zápasy do stránky aj ako JSON (Next.js).
   function parseJson(html) {
     const t = html.replace(/\\/g, '');
     const re = /"id":"([0-9a-f]{24})",[^{}]*?"date":"\$D([^"]+)","homeTeam":\{"name":"([^"]+)","score":"([^"]*)"[\s\S]*?"awayTeam":\{"name":"([^"]+)","score":"([^"]*)"/g;
@@ -52,10 +62,8 @@
     while ((m = re.exec(t))) {
       if (seen[m[1]]) continue;
       seen[m[1]] = 1;
-      const p = {};
-      TZ.formatToParts(new Date(m[2])).forEach(x => { p[x.type] = x.value; });
       const hs = /^\d+$/.test(m[4]) ? +m[4] : null, as = /^\d+$/.test(m[6]) ? +m[6] : null;
-      out.push({ id: m[1], date: `${p.year}-${p.month}-${p.day}`, time: `${p.hour}:${p.minute}`, home: m[3], away: m[5], hs: hs === null || as === null ? null : hs, as: hs === null || as === null ? null : as });
+      out.push({ id: m[1], ...formatKickoff(m[2]), home: m[3], away: m[5], hs: hs === null || as === null ? null : hs, as: hs === null || as === null ? null : as });
     }
     return out;
   }
@@ -101,6 +109,6 @@
     Object.values(entries).forEach(e => { if (e.played) { s.played++; s.goals += +e.goals || 0; s.assists += +e.assists || 0; } });
     return s;
   }
-  const API = { PROFILES, BASE, parseMatches, parseTable, view, teamStats, playerStats, isOurs };
+  const API = { PROFILES, BASE, formatKickoff, parseMatches, parseTable, view, teamStats, playerStats, isOurs };
   if (typeof module !== 'undefined') module.exports = API; else root.Futbal = API;
 })(typeof window !== 'undefined' ? window : globalThis);
