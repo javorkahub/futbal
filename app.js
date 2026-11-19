@@ -2,7 +2,13 @@
   const BASE = 'https://sportnet.sme.sk/futbalnet/k/osk-chorvatsky-grob/tim/';
   const CLUB = 'Chorvátsky Grob';
   const PROFILES = {
-    tomas: { name: 'Tomáš Mráz', team: 'U13 – Mladší žiaci B', slug: 'u13-m-b', tablePart: '6a38d5270b755716bcd9bea3', url: 'https://sportnet.sme.sk/futbalnet/clen/68d95f7194d10f7e9dd67b25/tomas-mraz/' },
+    tomas: {
+      name: 'Tomáš Mráz', team: 'U13 – Mladší žiaci B', slug: 'u13-m-b',
+      tableCompetition: '6a217228233cdeb1e753a3b2',
+      tablePart: '6a38d5270b755716bcd9bea3',
+      tableTeam: '6a3677cbe5a4847e62632076',
+      url: 'https://sportnet.sme.sk/futbalnet/clen/68d95f7194d10f7e9dd67b25/tomas-mraz/'
+    },
     oliver: { name: 'Oliver Mráz', team: 'U10 – A', slug: 'u10-m-a', url: 'https://sportnet.sme.sk/futbalnet/clen/68dad51f94d10f7e9dd6a3be/oliver-mraz/' }
   };
 

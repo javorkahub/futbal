@@ -61,6 +61,7 @@ async function refresh(){
 const all=()=>{const seen={},l=[];[...sched,...resu,...(S.manual||[])].forEach(m=>{if(!seen[m.id]){seen[m.id]=1;l.push(m)}});return l.sort((a,b)=>a.date.localeCompare(b.date))};
 const E=()=>S.entries=S.entries||{};
 const fd=d=>d.slice(8)+'.'+d.slice(5,7)+'.';
+const escapeText=value=>value.replace(/[&<>]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[char]));
 function row(m){const e=E()[m.id]||{},v=F.view(m,e),r=v.gf===null?'':v.gf>v.ga?'W':v.gf===v.ga?'D':'L';
   return `<div class="card m" data-id="${m.id}"><div class="d">${fd(m.date)}<br>${m.time||''}</div>
   <div class="t">${v.homeOurs?'🏠':'🚌'} ${v.opp}<div class="note">${e.played?`⚽${e.goals||0} 🎯${e.assists||0} ${e.mood||''}`:'klikni a zapíš'}</div></div>
@@ -75,8 +76,8 @@ function render(){
   if(tab==='team'){const s=F.teamStats(ms,en);h=`<div class="card"><b>${F.PROFILES[pid].team}</b><div class="note">Výhra 3 body · remíza 1 bod · prehra 0 bodov</div></div><div class="grid">
    <div class="stat"><b>${s.gp}</b>zápasov</div><div class="stat g"><b>${s.pts}</b>bodov</div><div class="stat b"><b>${s.w}-${s.d}-${s.l}</b>V-R-P</div>
    <div class="stat g"><b>${s.gf}</b>strelené góly</div><div class="stat r"><b>${s.ga}</b>inkasované</div><div class="stat"><b>${s.gf-s.ga}</b>skóre rozdiel</div></div>`}
-  if(tab==='tbl'){const L=`<div class="card"><a href="${F.BASE}${F.PROFILES[pid].slug}/tabulky/#/?competitionId=6a217228233cdeb1e753a3b2&partId=${F.PROFILES[pid].tablePart}" target="_blank" rel="noopener">Tabuľka MZM B na Sportnete ↗</a></div>`;
-   h=tbl&&tbl.length?`<div class="card" style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;text-align:center"><tr style="background:#ffd23f"><th>#</th><th style="text-align:left">Klub</th><th>Z</th><th>V</th><th>R</th><th>P</th><th>Skóre</th><th>B</th></tr>`+tbl.map(r=>`<tr style="${/Chorvátsky Grob/.test(r.club)?'background:#b9f3cf;font-weight:700':''}"><td>${r.pos}</td><td style="text-align:left">${r.club}</td><td>${r.z}</td><td>${r.v}</td><td>${r.r}</td><td>${r.p}</td><td>${r.gf}:${r.ga}</td><td><b>${r.pts}</b></td></tr>`).join('')+`</table></div>`+L:`<div class="card">Tabuľku sa zatiaľ nepodarilo načítať automaticky.</div>`+L}
+  if(tab==='tbl'){const L=`<div class="card"><a href="${F.BASE}${F.PROFILES[pid].slug}/tabulky/#/?competitionId=${F.PROFILES[pid].tableCompetition}&partId=${F.PROFILES[pid].tablePart}" target="_blank" rel="noopener">Tabuľka MZM B na Sportnete ↗</a></div>`;
+   h=tbl&&tbl.length?`<div class="card" style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;text-align:center"><tr style="background:#ffd23f"><th>#</th><th style="text-align:left">Klub</th><th>Z</th><th>V</th><th>R</th><th>P</th><th>Skóre</th><th>B</th></tr>`+tbl.map(r=>`<tr style="${/Chorvátsky Grob/.test(r.club)?'background:#b9f3cf;font-weight:700':''}"><td>${r.pos}</td><td style="text-align:left">${escapeText(r.club)}</td><td>${r.z}</td><td>${r.v}</td><td>${r.r}</td><td>${r.p}</td><td>${r.gf}:${r.ga}</td><td><b>${r.pts}</b></td></tr>`).join('')+`</table></div>`+L:`<div class="card">Tabuľku sa zatiaľ nepodarilo načítať automaticky.</div>`+L}
   if(tab==='me'){const s=F.playerStats(en);h=`<div class="grid"><div class="stat b"><b>${s.played}</b>odohraných</div><div class="stat g"><b>${s.goals}</b>⚽ góly</div><div class="stat"><b>${s.assists}</b>🎯 asistencie</div></div>
    <div class="card"><a href="${F.PROFILES[pid].url}" target="_blank" rel="noopener">Profil na Sportnete ↗</a></div>`;
    h+=ms.filter(m=>(en[m.id]||{}).played).reverse().map(row).join('')}

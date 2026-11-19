@@ -1,4 +1,4 @@
-// Stiahne program a výsledky zo Sportnetu a uloží ich do data/<tím>.json
+// Stiahne program, výsledky a tabuľku zo Sportnetu a uloží ich do data/<tím>.json
 const fs = require('fs');
 const F = require('../app.js');
 const UA = 'Mozilla/5.0 (compatible; futbal-bot; +https://github.com)';
@@ -39,19 +39,43 @@ async function load(url, extra) {
   if (all.length) console.log('   spolu zápasov:', all.length);
   return all;
 }
-async function loadTable(url, part) {
-  const h = await html(url);
-  const rows = F.parseTable(h);
-  console.log(url, '| riadkov tabuľky v HTML:', rows.length);
-  if (rows.some(r => /Chorvátsky Grob B/.test(r.club))) return rows;   // len tabuľka MZM B (A-čko má v názve len „Chorvátsky Grob“)
-  if (rows.length) console.log('   tabuľka v HTML je pre inú skupinu (nie MZM B) – nepoužitá');
-  const t = h.replace(/\\/g, '');
-  console.log('   výskytov partId:', t.split(part).length - 1);
-  const api = [...new Set(t.match(/https?:\/\/[a-z.]*sportnet\.[a-z]+\/[A-Za-z0-9_\-\/.]*(?:competition|part|table|standing|tabul)[A-Za-z0-9_\-\/.?=&]*/gi) || [])];
-  console.log('   adresy súvisiace s tabuľkou:', api.slice(0, 10).join(' ; ') || '(žiadne)');
-  const i = t.indexOf(part);
-  if (i >= 0) console.log('   okolie partId:', t.slice(Math.max(0, i - 200), i + 400));
-  return undefined;
+async function loadTable(profile) {
+  const url = `https://sutaze.api.sportnet.online/api/v2/public/competitions/${profile.tableCompetition}/parts/${profile.tablePart}/results?view=all`;
+  const response = await fetch(url, {
+    headers: { 'User-Agent': UA, Accept: 'application/json' },
+    signal: AbortSignal.timeout(15_000)
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const { results } = await response.json();
+  if (!Array.isArray(results) || !results.some(row => row?.team?._id === profile.tableTeam)) {
+    throw new Error('odpoveď neobsahuje tabuľku očakávanej skupiny');
+  }
+
+  // Sportnet už určil poradie vrátane tímov s rovnakým počtom bodov.
+  return results.map(({ team, stats }, index) => {
+    const { played, won, draw, lost } = stats?.matches ?? {};
+    const { given, received } = stats?.goals ?? {};
+    const points = stats?.points;
+    if (typeof team?.name !== 'string' || !team.name.trim() ||
+        ![played, won, draw, lost, given, received, points].every(Number.isInteger)) {
+      throw new Error(`neúplný riadok tabuľky na pozícii ${index + 1}`);
+    }
+    return {
+      pos: index + 1, club: team.name,
+      z: played, v: won, r: draw, p: lost, gf: given, ga: received, pts: points
+    };
+  });
+}
+
+function readSavedTable(file) {
+  try {
+    const { table } = JSON.parse(fs.readFileSync(file, 'utf8'));
+    if (Array.isArray(table) && table.length) return table;
+  } catch (error) {
+    if (error.code !== 'ENOENT') {
+      console.warn(`Uloženú tabuľku sa nepodarilo načítať z ${file}: ${error.message}`);
+    }
+  }
 }
 const ms0 = a => a.length > 0;
 
@@ -62,9 +86,20 @@ const ms0 = a => a.length > 0;
     try {
       const b = F.BASE + p.slug + '/';
       const [program, vysledky] = await Promise.all([load(b + 'program/', true), load(b + 'vysledky/', true)]);
-      const table = p.tablePart ? await loadTable(b + 'tabulky/', p.tablePart) : undefined;
       if (!program.length && !vysledky.length) throw new Error('nenašli sa žiadne zápasy');
-      fs.writeFileSync(`data/${p.slug}.json`, JSON.stringify({ updated: new Date().toISOString(), program, vysledky, table }, null, 1));
+      const file = `data/${p.slug}.json`;
+      let table;
+      if (p.tablePart) {
+        try {
+          table = await loadTable(p);
+          console.log(p.slug, 'riadkov tabuľky:', table.length);
+        } catch (error) {
+          table = readSavedTable(file);
+          console.warn(p.slug, `tabuľku sa nepodarilo aktualizovať: ${error.message}.`,
+            table ? 'Používam uloženú tabuľku.' : 'Uložená tabuľka nie je k dispozícii.');
+        }
+      }
+      fs.writeFileSync(file, JSON.stringify({ updated: new Date().toISOString(), program, vysledky, table }, null, 1));
       console.log(p.slug, 'program', program.length, 'vysledky', vysledky.length);
     } catch (e) { failed++; console.error(p.slug, e.message); }
   }
