@@ -5,6 +5,7 @@
     tomas: {
       name: 'Tomáš Mráz', team: 'U13 – Mladší žiaci B', slug: 'u13-m-b',
       teamId: '6a3677cbe5a4847e62632076',
+      playerId: '68d95f7194d10f7e9dd67b25',
       tableCompetition: '6a217228233cdeb1e753a3b2',
       tablePart: '6a38d5270b755716bcd9bea3',
       url: 'https://sportnet.sme.sk/futbalnet/clen/68d95f7194d10f7e9dd67b25/tomas-mraz/'
@@ -12,6 +13,7 @@
     oliver: {
       name: 'Oliver Mráz', team: 'U10 – A', slug: 'u10-m-a',
       teamId: '6a366a25e5a4847e624e52a4',
+      playerId: '68dad51f94d10f7e9dd6a3be',
       url: 'https://sportnet.sme.sk/futbalnet/clen/68dad51f94d10f7e9dd6a3be/oliver-mraz/'
     }
   };

@@ -1,4 +1,4 @@
-// Stiahne program, výsledky a tabuľku zo Sportnetu a uloží ich do data/<tím>.json
+// Stiahne zápasy, tabuľku a hráčske štatistiky zo Sportnetu do data/<tím>.json
 const fs = require('fs');
 const F = require('../app.js');
 const UA = 'Mozilla/5.0 (compatible; futbal-bot; +https://github.com)';
@@ -83,14 +83,45 @@ async function loadTable(profile) {
   });
 }
 
-function readSavedTable(file) {
+async function loadPlayerStats(playerId) {
+  const url = new URL(`${API}/player/${playerId}/statistics`);
+  url.search = new URLSearchParams({ granularity: 'season', sector: 'sport:futbal:futbal' });
+  const { overallStats } = await getJson(url);
+  if (!Array.isArray(overallStats?.seasonStats)) {
+    throw new Error('odpoveď neobsahuje štatistiky hráča');
+  }
+  const fields = {
+    appearances: 'match_appearances', minutes: 'minutes', goals: 'goals',
+    yellow: 'yellow_cards', secondYellow: 'yellow_cards_second', red: 'red_cards'
+  };
+  function counts(row) {
+    return Object.fromEntries(Object.entries(fields).map(([key, field]) => {
+      const value = row[field];
+      if (value != null && (!Number.isSafeInteger(value) || value < 0)) {
+        throw new Error(`neplatná hodnota štatistiky ${field}`);
+      }
+      return [key, value ?? null];
+    }));
+  }
+  return {
+    overall: counts(overallStats),
+    seasons: overallStats.seasonStats.map(row => {
+      if (typeof row?.seasonName !== 'string' || !row.seasonName.trim()) {
+        throw new Error('v hráčskych štatistikách chýba sezóna');
+      }
+      return { season: row.seasonName, ...counts(row) };
+    })
+  };
+}
+
+function readSavedData(file) {
   try {
-    const { table } = JSON.parse(fs.readFileSync(file, 'utf8'));
-    if (Array.isArray(table) && table.length) return table;
+    return JSON.parse(fs.readFileSync(file, 'utf8')) ?? {};
   } catch (error) {
     if (error.code !== 'ENOENT') {
-      console.warn(`Uloženú tabuľku sa nepodarilo načítať z ${file}: ${error.message}`);
+      console.warn(`Uložené údaje sa nepodarilo načítať z ${file}: ${error.message}`);
     }
+    return {};
   }
 }
 
@@ -105,19 +136,26 @@ function readSavedTable(file) {
       ]);
       if (!program.length && !vysledky.length) throw new Error('nenašli sa žiadne zápasy');
       const file = `data/${p.slug}.json`;
-      let table;
-      if (p.tablePart) {
-        try {
-          table = await loadTable(p);
-          console.log(p.slug, 'riadkov tabuľky:', table.length);
-        } catch (error) {
-          table = readSavedTable(file);
-          console.warn(p.slug, `tabuľku sa nepodarilo aktualizovať: ${error.message}.`,
-            table ? 'Používam uloženú tabuľku.' : 'Uložená tabuľka nie je k dispozícii.');
-        }
+      const [tableResult, statsResult] = await Promise.allSettled([
+        p.tablePart ? loadTable(p) : undefined,
+        loadPlayerStats(p.playerId)
+      ]);
+      const saved = tableResult.status === 'rejected' || statsResult.status === 'rejected'
+        ? readSavedData(file) : {};
+      const table = tableResult.status === 'fulfilled' ? tableResult.value : saved.table;
+      const playerStats = statsResult.status === 'fulfilled' ? statsResult.value : saved.playerStats;
+      if (tableResult.status === 'rejected') {
+        console.warn(p.slug, 'tabuľku sa nepodarilo aktualizovať:', tableResult.reason.message);
       }
-      fs.writeFileSync(file, JSON.stringify({ updated: new Date().toISOString(), program, vysledky, table }, null, 1));
+      if (statsResult.status === 'rejected') {
+        console.warn(p.slug, 'hráčske štatistiky sa nepodarilo aktualizovať:', statsResult.reason.message);
+      }
+      fs.writeFileSync(file, JSON.stringify({
+        updated: new Date().toISOString(), program, vysledky, table, playerStats
+      }, null, 1));
       console.log(p.slug, 'program', program.length, 'vysledky', vysledky.length);
+      if (table) console.log(p.slug, 'riadkov tabuľky:', table.length);
+      if (playerStats) console.log(p.slug, 'sezóny v hráčskych štatistikách:', playerStats.seasons.length);
     } catch (e) { failed++; console.error(p.slug, e.message); }
   }
   if (failed === Object.keys(F.PROFILES).length) process.exit(1);

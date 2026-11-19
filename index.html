@@ -1,61 +1,60 @@
 <!DOCTYPE html>
 <html lang="sk"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Futbal – OŠK Chorvátsky Grob</title>
-<link rel="icon" href="https://api.sportnet.online/data/ppo/osk-chorvatsky-grob.futbalnet.sk/1ce80f11-7192-455d-8f75-24094029b911.jpeg">
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
-<style>
-:root{--g:#1faa59;--dg:#0d6b37;--y:#ffd23f;--r:#ff5a5f;--b:#2d7ff9;--w:#fff;--ink:#12361f}
-*{box-sizing:border-box}
-body{margin:0;font-family:Fredoka,"Trebuchet MS",sans-serif;color:var(--ink);
-background:repeating-linear-gradient(90deg,#27b862 0 60px,#2fc46c 60px 120px);min-height:100vh}
-header{background:var(--dg);color:var(--w);padding:10px 14px;display:flex;align-items:center;gap:12px;border-bottom:6px solid var(--y)}
-header img{width:54px;height:54px;border-radius:50%;border:3px solid var(--y);background:#fff}
-header h1{font-size:1.2rem;margin:0;flex:1}
-select{font:inherit;font-weight:700;font-size:1rem;padding:8px 10px;border-radius:14px;border:3px solid var(--y);background:#fff;color:var(--ink)}
-nav{display:flex;gap:6px;padding:10px;overflow-x:auto}
-nav button{flex:1;min-width:92px;font:inherit;font-weight:700;padding:10px 6px;border:0;border-radius:16px;background:#fff;color:var(--dg);cursor:pointer;box-shadow:0 4px 0 #0003}
-nav button.on{background:var(--y);transform:translateY(2px)}
-main{max-width:760px;margin:0 auto;padding:0 10px 40px}
-.card{background:#fff;border-radius:20px;padding:12px 14px;margin:10px 0;box-shadow:0 4px 0 #0003}
-.m{display:flex;align-items:center;gap:10px;cursor:pointer}
-.m .d{font-size:.8rem;color:#567;min-width:62px}.m .t{flex:1;font-weight:600}
-.sc{font-weight:700;font-size:1.2rem;padding:4px 12px;border-radius:12px;background:#eee}
-.sc.W{background:#b9f3cf}.sc.D{background:#ffeaa0}.sc.L{background:#ffc9cb}
-.tag{font-size:1.1rem}.note{color:#567;font-size:.85rem}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.stat{background:var(--y);border-radius:18px;text-align:center;padding:12px 4px}
-.stat b{display:block;font-size:2rem}.stat.b{background:#bfe0ff}.stat.r{background:#ffc9cb}.stat.g{background:#b9f3cf}
-dialog{border:0;border-radius:24px;padding:18px;width:min(94vw,440px);box-shadow:0 0 0 9999px #0008}
-label{display:block;font-weight:600;margin:10px 0 4px}
-input[type=number],input[type=text],input[type=date]{font:inherit;width:100%;padding:9px;border:3px solid #cde;border-radius:12px}
-.row{display:flex;gap:8px}.row>*{flex:1}
-.moods{display:flex;gap:6px}.moods button{flex:1;font-size:1.8rem;padding:6px;border:3px solid #cde;border-radius:14px;background:#fff;cursor:pointer}
-.moods button.on{border-color:var(--g);background:#d9f9e5}
-.btn{font:inherit;font-weight:700;border:0;border-radius:16px;padding:11px 16px;background:var(--g);color:#fff;cursor:pointer;box-shadow:0 4px 0 #0003}
-.btn.o{background:#e7edf2;color:var(--ink)}
-#st{color:#fff;text-align:center;font-size:.85rem;padding:4px}
-</style></head><body>
-<header><img src="https://api.sportnet.online/data/ppo/osk-chorvatsky-grob.futbalnet.sk/1ce80f11-7192-455d-8f75-24094029b911.jpeg" alt="Logo OŠK Chorvátsky Grob">
-<h1>⚽ Futbalový denník</h1><select id="who" aria-label="Hráč"></select></header>
-<nav id="nav"></nav><div id="st"></div><main id="v"></main>
+<title>Ja a môj tím – OŠK Chorvátsky Grob</title>
+<link rel="icon" href="assets/club.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,800&amp;family=Geist:wght@400..750&amp;display=swap">
+<link rel="stylesheet" href="style.css">
+</head><body>
+<header class="masthead">
+  <div class="shell masthead-inner">
+    <div class="club">
+      <img src="assets/club.webp" alt="" width="34" height="34">
+      <span>OŠK Chorvátsky Grob</span>
+    </div>
+    <label class="player-select"><span>Hráč</span><select id="who" aria-label="Hráč"></select></label>
+  </div>
+</header>
+<div class="pitch">
+  <div class="shell pitch-inner">
+    <p class="pitch-team" id="pitch-team"></p>
+    <h1>Ja a môj tím</h1>
+  </div>
+</div>
+<div class="navigation"><nav class="shell" id="nav" aria-label="Sekcie denníka"></nav></div>
+<main class="shell">
+  <div class="section-heading">
+    <h2 id="section-title"></h2>
+    <p id="st" role="status"></p>
+  </div>
+  <div id="v"></div>
+</main>
 <dialog id="dlg"></dialog>
 <script src="app.js"></script>
 <script>
 const F=window.Futbal,$=s=>document.querySelector(s);
-const TABS={prog:'📅 Program',res:'🏆 Výsledky',team:'📊 Tím',me:'⭐ Moje štatistiky',tbl:'🥇 Tabuľka'};
-let tbl=null,pid=localStorage.getItem('futbal:last')||'tomas',tab='prog',sched=[],resu=[],S;
+const TABS={prog:'Program',res:'Výsledky',team:'Tím',me:'Moje štatistiky',tbl:'Tabuľka'};
+let tbl=null,officialPlayer=null,pid=localStorage.getItem('futbal:last')||'tomas',tab='prog',sched=[],resu=[],S;
+let refreshSequence=0;
 const load=()=>{try{return JSON.parse(localStorage.getItem('futbal:'+pid))||{}}catch(e){return{}}};
 const save=()=>localStorage.setItem('futbal:'+pid,JSON.stringify(S));
 async function refresh(){
-  $('#st').textContent='⏳ Načítavam údaje…';
+  const request=++refreshSequence;
+  $('#st').textContent='Načítavam údaje…';
   try{
     const r=await fetch('data/'+F.PROFILES[pid].slug+'.json?'+Date.now());
-    if(!r.ok)throw 0;
-    const d=await r.json();sched=d.program||[];resu=d.vysledky||[];tbl=d.table||null;
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    if(request!==refreshSequence)return;
+    sched=d.program||[];resu=d.vysledky||[];tbl=d.table||null;officialPlayer=d.playerStats||null;
     const t=new Date(d.updated);
-    $('#st').textContent='✅ Údaje zo Sportnetu z '+t.toLocaleString('sk-SK',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'});
-  }catch(e){$('#st').textContent='⚠️ Údaje zo Sportnetu sa nepodarilo načítať – ukazujem len ručné údaje'}
+    $('#st').textContent='Sportnet · '+t.toLocaleString('sk-SK',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'});
+  }catch(e){
+    if(request!==refreshSequence)return;
+    $('#st').textContent='Údaje zo Sportnetu sa nepodarilo načítať';
+  }
   render();
 }
 const all=()=>{const seen={},l=[];[...sched,...resu,...(S.manual||[])].forEach(m=>{if(!seen[m.id]){seen[m.id]=1;l.push(m)}});return l.sort((a,b)=>a.date.localeCompare(b.date))};
@@ -63,25 +62,61 @@ const E=()=>S.entries=S.entries||{};
 const fd=d=>d?d.slice(8)+'.'+d.slice(5,7)+'.':'Termín neurčený';
 const escapeText=value=>value.replace(/[&<>]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[char]));
 function row(m){const e=E()[m.id]||{},v=F.view(m,e),r=v.gf===null?'':v.gf>v.ga?'W':v.gf===v.ga?'D':'L';
-  return `<div class="card m" data-id="${m.id}"><div class="d">${fd(m.date)}<br>${m.time||''}</div>
-  <div class="t">${v.homeOurs?'🏠':'🚌'} ${escapeText(v.opp)}<div class="note">${e.played?`⚽${e.goals||0} 🎯${e.assists||0} ${e.mood||''}`:'klikni a zapíš'}</div></div>
-  <div class="sc ${r}">${v.gf===null?'–':v.gf+':'+v.ga}</div></div>`}
+  return `<button type="button" class="card m" data-id="${m.id}"><span class="d${m.date?'':' pending'}">${fd(m.date)}${m.time?`<small>${m.time}</small>`:''}</span>
+  <span class="t"><span class="opp">${escapeText(v.opp)}</span><span class="venue">${v.homeOurs?'Doma':'Vonku'}${e.played?` · ⚽${e.goals||0} 🎯${e.assists||0} ${e.mood||''}`:''}</span></span>
+  <span class="sc ${r}">${v.gf===null?'–':v.gf+':'+v.ga}</span><span class="chevron" aria-hidden="true">›</span></button>`}
+
+function renderPlayerStats(profile) {
+  const fields=['appearances','minutes','goals','yellow','secondYellow','red'];
+  const cells=stats=>fields.map(field=>`<td>${stats[field]??'–'}</td>`).join('');
+  let content='<p class="note">Štatistiky zo Sportnetu zatiaľ nie sú k dispozícii.</p>';
+  if(officialPlayer?.seasons.length){
+    const seasons=officialPlayer.seasons.map(stats=>`<tr><th scope="row" class="text">${escapeText(stats.season)}</th>${cells(stats)}</tr>`).join('');
+    content=`<div class="table-scroll" tabindex="0" role="region" aria-label="Štatistiky podľa sezóny">
+      <table class="data-table player-table">
+        <thead><tr><th scope="col" class="text">Sezóna</th><th scope="col">Zápasy</th><th scope="col">Minúty</th><th scope="col">Góly</th>
+          <th scope="col" title="Žlté karty" aria-label="Žlté karty"><span class="card-mark" aria-hidden="true"></span>ŽK</th>
+          <th scope="col" title="Druhé žlté karty" aria-label="Druhé žlté karty"><span class="card-mark second" aria-hidden="true"></span>2. ŽK</th>
+          <th scope="col" title="Červené karty" aria-label="Červené karty"><span class="card-mark red" aria-hidden="true"></span>ČK</th></tr></thead>
+        <tbody>${seasons}</tbody>
+        <tfoot><tr><th scope="row" class="text">Celkovo</th>${cells(officialPlayer.overall)}</tr></tfoot>
+      </table></div>`;
+  }
+  return `<section class="card"><div class="panel-title"><h3>${profile.name}</h3>
+    <a href="${profile.url}#/futbal/statistiky/" target="_blank" rel="noopener">Štatistiky na Sportnete</a></div>${content}</section>`;
+}
+
+function renderStandings(profile){
+  const link=`<a href="${F.BASE}${profile.slug}/tabulky/#/?competitionId=${profile.tableCompetition}&amp;partId=${profile.tablePart}" target="_blank" rel="noopener">Tabuľka na Sportnete</a>`;
+  const rows=tbl?.map(r=>`<tr class="${F.isOurs(r.club)?'ours':''}"><td>${r.pos}</td><th scope="row" class="text">${escapeText(r.club)}</th><td>${r.z}</td><td>${r.v}</td><td>${r.r}</td><td>${r.p}</td><td>${r.gf}:${r.ga}</td><td><b>${r.pts}</b></td></tr>`).join('');
+  const content=rows?`<div class="table-scroll" tabindex="0" role="region" aria-label="Poradie MZM B">
+    <table class="data-table standings"><thead><tr><th scope="col">#</th><th scope="col" class="text">Klub</th>
+    <th scope="col">Z</th><th scope="col">V</th><th scope="col">R</th><th scope="col">P</th><th scope="col">Skóre</th><th scope="col">B</th></tr></thead>
+    <tbody>${rows}</tbody></table></div>`:'<p class="note">Tabuľku sa zatiaľ nepodarilo načítať.</p>';
+  return `<section class="card"><div class="panel-title"><h3>MZM B</h3>${link}</div>${content}</section>`;
+}
+
 function render(){
-  $('#nav').innerHTML=Object.entries(TABS).filter(([k])=>k!=='tbl'||F.PROFILES[pid].tablePart).map(([k,t])=>`<button data-t="${k}" class="${k===tab?'on':''}">${t}</button>`).join('');
+  const profile=F.PROFILES[pid];
+  $('#section-title').textContent=TABS[tab];
+  $('#nav').innerHTML=Object.entries(TABS).filter(([k])=>k!=='tbl'||profile.tablePart).map(([k,t])=>`<button type="button" data-t="${k}"${k===tab?' class="on" aria-current="true"':''}>${t}</button>`).join('');
   const ms=all(),today=new Date().toISOString().slice(0,10),en=E();let h='';
   if(tab==='prog'){const l=ms.filter(m=>!m.closed&&(m.closed===false||m.date>=today)&&F.view(m,en[m.id]).gf===null)
     .sort((a,b)=>Number(!a.date)-Number(!b.date));
-    h=l.map(row).join('')||'<div class="card">Žiadne naplánované zápasy 🎉</div>';
-    h+='<button class="btn" id="add">➕ Pridať zápas ručne</button>'}
+    h=l.map(row).join('')||'<div class="card">Žiadne naplánované zápasy</div>';
+    h+='<button class="btn" id="add">+ Pridať zápas ručne</button>'}
   if(tab==='res'){const l=ms.filter(m=>m.closed||F.view(m,en[m.id]).gf!==null).reverse();h=l.map(row).join('')||'<div class="card">Zatiaľ žiadne výsledky</div>'}
-  if(tab==='team'){const s=F.teamStats(ms,en);h=`<div class="card"><b>${F.PROFILES[pid].team}</b><div class="note">Výhra 3 body · remíza 1 bod · prehra 0 bodov</div></div><div class="grid">
-   <div class="stat"><b>${s.gp}</b>zápasov</div><div class="stat g"><b>${s.pts}</b>bodov</div><div class="stat b"><b>${s.w}-${s.d}-${s.l}</b>V-R-P</div>
+  if(tab==='team'){const s=F.teamStats(ms,en);h=`<div class="grid">
+   <div class="stat"><b>${s.gp}</b>zápasy</div><div class="stat g"><b>${s.pts}</b>body</div><div class="stat b"><b>${s.w}-${s.d}-${s.l}</b>V-R-P</div>
    <div class="stat g"><b>${s.gf}</b>strelené góly</div><div class="stat r"><b>${s.ga}</b>inkasované</div><div class="stat"><b>${s.gf-s.ga}</b>skóre rozdiel</div></div>`}
-  if(tab==='tbl'){const L=`<div class="card"><a href="${F.BASE}${F.PROFILES[pid].slug}/tabulky/#/?competitionId=${F.PROFILES[pid].tableCompetition}&partId=${F.PROFILES[pid].tablePart}" target="_blank" rel="noopener">Tabuľka MZM B na Sportnete ↗</a></div>`;
-   h=tbl&&tbl.length?`<div class="card" style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;text-align:center"><tr style="background:#ffd23f"><th>#</th><th style="text-align:left">Klub</th><th>Z</th><th>V</th><th>R</th><th>P</th><th>Skóre</th><th>B</th></tr>`+tbl.map(r=>`<tr style="${/Chorvátsky Grob/.test(r.club)?'background:#b9f3cf;font-weight:700':''}"><td>${r.pos}</td><td style="text-align:left">${escapeText(r.club)}</td><td>${r.z}</td><td>${r.v}</td><td>${r.r}</td><td>${r.p}</td><td>${r.gf}:${r.ga}</td><td><b>${r.pts}</b></td></tr>`).join('')+`</table></div>`+L:`<div class="card">Tabuľku sa zatiaľ nepodarilo načítať automaticky.</div>`+L}
-  if(tab==='me'){const s=F.playerStats(en);h=`<div class="grid"><div class="stat b"><b>${s.played}</b>odohraných</div><div class="stat g"><b>${s.goals}</b>⚽ góly</div><div class="stat"><b>${s.assists}</b>🎯 asistencie</div></div>
-   <div class="card"><a href="${F.PROFILES[pid].url}" target="_blank" rel="noopener">Profil na Sportnete ↗</a></div>`;
-   h+=ms.filter(m=>(en[m.id]||{}).played).reverse().map(row).join('')}
+  if(tab==='tbl')h=renderStandings(profile);
+  if(tab==='me'){
+    const s=F.playerStats(en);
+    h=renderPlayerStats(profile)+`<section class="journal"><div class="panel-title"><h3>Môj denník</h3></div>
+      <div class="grid"><div class="stat b"><b>${s.played}</b>zápasy</div><div class="stat g"><b>${s.goals}</b>góly</div><div class="stat"><b>${s.assists}</b>asistencie</div></div></section>`;
+    const matches=ms.filter(m=>en[m.id]?.played).reverse().map(row).join('');
+    if(matches)h+=`<div class="journal">${matches}</div>`;
+  }
   $('#v').innerHTML=h;
 }
 function edit(id){const m=all().find(x=>x.id===id),e=E()[id]||{},v=F.view(m,e),man=(S.manual||[]).some(x=>x.id===id);
@@ -89,9 +124,9 @@ function edit(id){const m=all().find(x=>x.id===id),e=E()[id]||{},v=F.view(m,e),m
   <label><input type="checkbox" id="p" ${e.played?'checked':''}> ✅ Hral som</label>
   <div class="row"><div><label>⚽ Góly</label><input type="number" min="0" id="g" value="${e.goals||0}"></div><div><label>🎯 Asistencie</label><input type="number" min="0" id="a" value="${e.assists||0}"></div></div>
   <label>Aký dojem z zápasu?</label><div class="moods" id="mo">${['😀','🙂','😐','🙁'].map(x=>`<button type="button" class="${e.mood===x?'on':''}">${x}</button>`).join('')}</div>
-  <input type="text" id="n" placeholder="Poznámka (voliteľné)" value="${(e.note||'').replace(/"/g,'&quot;')}" style="margin-top:8px">
+  <input type="text" id="n" aria-label="Poznámka" placeholder="Poznámka (voliteľné)" value="${escapeText(e.note||'').replace(/"/g,'&quot;')}" style="margin-top:8px">
   <label>Výsledok (naše : súper)</label><div class="row"><input type="number" min="0" id="gf" value="${v.gf??''}"><input type="number" min="0" id="ga" value="${v.ga??''}"></div>
-  <div class="row" style="margin-top:14px"><button class="btn o" id="x">Zrušiť</button><button class="btn" id="del" style="background:var(--r)">🗑 ${man?'Zmazať zápas':'Vymazať záznam'}</button><button class="btn" id="ok">💾 Uložiť</button></div>`;
+  <div class="row" style="margin-top:14px"><button class="btn o" id="x">Zrušiť</button><button class="btn danger" id="del">${man?'Zmazať zápas':'Vymazať záznam'}</button><button class="btn" id="ok">Uložiť</button></div>`;
   let mood=e.mood||'';$('#mo').onclick=ev=>{if(ev.target.tagName!=='BUTTON')return;mood=ev.target.textContent;[...$('#mo').children].forEach(b=>b.classList.toggle('on',b===ev.target))};
   $('#x').onclick=()=>$('#dlg').close();
   $('#del').onclick=()=>{if(!confirm(man?'Naozaj zmazať tento zápas aj so záznamom?':'Vymazať tvoj záznam k tomuto zápasu (góly, asistencie, dojem, ručný výsledok)?'))return;if(man)S.manual=S.manual.filter(x=>x.id!==id);delete E()[id];save();$('#dlg').close();render()};
@@ -105,8 +140,15 @@ function addMatch(){$('#dlg').innerHTML=`<h2>➕ Nový zápas</h2><label>Dátum 
   $('#dlg').showModal()}
 document.addEventListener('click',ev=>{const t=ev.target.closest('[data-t]'),c=ev.target.closest('[data-id]');
   if(t){tab=t.dataset.t;render()}else if(c)edit(c.dataset.id);else if(ev.target.id==='add')addMatch()});
-$('#who').innerHTML=Object.entries(F.PROFILES).map(([k,p])=>`<option value="${k}">${p.name} (${p.team.split(' ')[0]})</option>`).join('');
-function start(){$('#who').value=pid;S=load();sched=[];resu=[];tbl=null;if(tab==='tbl'&&!F.PROFILES[pid].tablePart)tab='prog';render();refresh()}
+$('#who').innerHTML=Object.entries(F.PROFILES).map(([k,p])=>`<option value="${k}">${p.name}</option>`).join('');
+function start(){
+  if(!Object.hasOwn(F.PROFILES,pid))pid='tomas';
+  const profile=F.PROFILES[pid];
+  $('#who').value=pid;$('#pitch-team').textContent=profile.team;
+  S=load();sched=[];resu=[];tbl=null;officialPlayer=null;
+  if(tab==='tbl'&&!profile.tablePart)tab='prog';
+  render();refresh();
+}
 $('#who').onchange=e=>{pid=e.target.value;localStorage.setItem('futbal:last',pid);start()};
 start();
 </script></body></html>
