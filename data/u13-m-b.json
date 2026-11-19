@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-19T15:52:42.875Z",
+ "updated": "2026-11-19T16:20:16.998Z",
  "program": [
   {
    "id": "6a573505d14e91f303d8d28f",
@@ -445,5 +445,26 @@
    "ga": 106,
    "pts": 0
   }
- ]
+ ],
+ "playerStats": {
+  "overall": {
+   "appearances": 4,
+   "minutes": 240,
+   "goals": 0,
+   "yellow": 0,
+   "secondYellow": 0,
+   "red": 0
+  },
+  "seasons": [
+   {
+    "season": "2026/2027",
+    "appearances": 4,
+    "minutes": 240,
+    "goals": 0,
+    "yellow": 0,
+    "secondYellow": 0,
+    "red": 0
+   }
+  ]
+ }
 }
