@@ -39,7 +39,7 @@
 const F=window.Futbal,$=s=>document.querySelector(s);
 const TABS={training:'Plán tréningov',prog:'Program',res:'Výsledky',team:'Tím',me:'Moje štatistiky',tbl:'Tabuľka'};
 const TRAINING_HASH='#plan-treningov';
-let tbl=null,officialPlayer=null,pid=localStorage.getItem('futbal:last')||'tomas',tab=location.hash===TRAINING_HASH?'training':'prog',sched=[],resu=[],S;
+let tbl=null,officialPlayer=null,pid=localStorage.getItem('futbal:last')||'tomas',tab='training',sched=[],resu=[],S;
 let refreshSequence=0;
 let shownTrainingMonday;
 const trainingPlan=window.createTrainingPlan($('#v'),$('#training-dialog'),()=>tab==='training');
@@ -162,8 +162,8 @@ document.addEventListener('click',ev=>{const t=ev.target.closest('[data-t]'),c=e
     render();
   }else if(c)edit(c.dataset.id);else if(ev.target.id==='add')addMatch()});
 window.addEventListener('hashchange',()=>{
-  if(location.hash===TRAINING_HASH)tab='training';
-  else if(tab==='training')tab='prog';
+  if(location.hash&&location.hash!==TRAINING_HASH)return;
+  tab='training';
   render();
 });
 function refreshTrainingWeek(){
