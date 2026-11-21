@@ -69,7 +69,7 @@ const fd=d=>d?d.slice(8)+'.'+d.slice(5,7)+'.':'Termín neurčený';
 const escapeText=value=>value.replace(/[&<>]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[char]));
 function row(m){const e=E()[m.id]||{},v=F.view(m,e),r=v.gf===null?'':v.gf>v.ga?'W':v.gf===v.ga?'D':'L';
   return `<button type="button" class="card m" data-id="${m.id}"><span class="d${m.date?'':' pending'}">${fd(m.date)}${m.time?`<small>${m.time}</small>`:''}</span>
-  <span class="t"><span class="opp">${escapeText(v.opp)}</span><span class="venue">${v.homeOurs?'Doma':'Vonku'}${e.played?` · ⚽${e.goals||0} 🎯${e.assists||0} ${e.mood||''}`:''}</span></span>
+  <span class="t"><span class="opp">${escapeText(v.opp)}</span><span class="venue">${v.homeOurs?'Doma':'Vonku'}${e.played?` · ⚽${e.goals||0} 🎯${e.assists||0} · Strely: ${e.shots??0} ${e.mood||''}`:''}</span></span>
   <span class="sc ${r}">${v.gf===null?'–':v.gf+':'+v.ga}</span><span class="chevron" aria-hidden="true">›</span></button>`}
 
 function renderPlayerStats(profile) {
@@ -130,7 +130,7 @@ function render(){
   if(tab==='me'){
     const s=F.playerStats(en);
     h=renderPlayerStats(profile)+`<section class="journal"><div class="panel-title"><h3>Môj denník</h3></div>
-      <div class="grid"><div class="stat b"><b>${s.played}</b>zápasy</div><div class="stat g"><b>${s.goals}</b>góly</div><div class="stat"><b>${s.assists}</b>asistencie</div></div></section>`;
+      <div class="grid"><div class="stat b"><b>${s.played}</b>zápasy</div><div class="stat g"><b>${s.goals}</b>góly</div><div class="stat"><b>${s.assists}</b>asistencie</div><div class="stat"><b>${Object.values(en).reduce((sum,e)=>sum+(e.played?(Number(e.shots)||0):0),0)}</b>strely</div></div></section>`;
     const matches=ms.filter(m=>en[m.id]?.played).reverse().map(row).join('');
     if(matches)h+=`<div class="journal">${matches}</div>`;
   }
@@ -139,15 +139,15 @@ function render(){
 function edit(id){const m=all().find(x=>x.id===id),e=E()[id]||{},v=F.view(m,e),man=(S.manual||[]).some(x=>x.id===id);
   $('#dlg').innerHTML=`<h2>${escapeText(v.opp)}</h2>${man?`<label>Dátum a čas</label><div class="row"><input type="date" id="md" value="${m.date}"><input type="time" id="mt" value="${m.time||''}"></div><label>Súper</label><input type="text" id="mo2" value="${escapeText(v.opp).replace(/"/g,'&quot;')}"><label><input type="checkbox" id="mh" ${v.homeOurs?'checked':''}> Doma</label>`:`<div class="note">${fd(m.date)} ${m.time||''}</div>`}
   <label><input type="checkbox" id="p" ${e.played?'checked':''}> ✅ Hral som</label>
-  <div class="row"><div><label>⚽ Góly</label><input type="number" min="0" id="g" value="${e.goals||0}"></div><div><label>🎯 Asistencie</label><input type="number" min="0" id="a" value="${e.assists||0}"></div></div>
+  <div class="row"><div><label>⚽ Góly</label><input type="number" min="0" id="g" value="${e.goals||0}"></div><div><label>🎯 Asistencie</label><input type="number" min="0" id="a" value="${e.assists||0}"></div><div><label>Strely</label><input type="number" min="0" step="1" id="shots" value="${e.shots??0}"></div></div>
   <label>Aký dojem z zápasu?</label><div class="moods" id="mo">${['😀','🙂','😐','🙁'].map(x=>`<button type="button" class="${e.mood===x?'on':''}">${x}</button>`).join('')}</div>
   <input type="text" id="n" aria-label="Poznámka" placeholder="Poznámka (voliteľné)" value="${escapeText(e.note||'').replace(/"/g,'&quot;')}" style="margin-top:8px">
   <label>Výsledok (naše : súper)</label><div class="row"><input type="number" min="0" id="gf" value="${v.gf??''}"><input type="number" min="0" id="ga" value="${v.ga??''}"></div>
   <div class="row" style="margin-top:14px"><button class="btn o" id="x">Zrušiť</button><button class="btn danger" id="del">${man?'Zmazať zápas':'Vymazať záznam'}</button><button class="btn" id="ok">Uložiť</button></div>`;
   let mood=e.mood||'';$('#mo').onclick=ev=>{if(ev.target.tagName!=='BUTTON')return;mood=ev.target.textContent;[...$('#mo').children].forEach(b=>b.classList.toggle('on',b===ev.target))};
   $('#x').onclick=()=>$('#dlg').close();
-  $('#del').onclick=()=>{if(!confirm(man?'Naozaj zmazať tento zápas aj so záznamom?':'Vymazať tvoj záznam k tomuto zápasu (góly, asistencie, dojem, ručný výsledok)?'))return;if(man)S.manual=S.manual.filter(x=>x.id!==id);delete E()[id];save();$('#dlg').close();render()};
-  $('#ok').onclick=()=>{if(man){const o=$('#mo2').value.trim(),d=$('#md').value;if(!o||!d){alert('Vyplň dátum a súpera');return}const us='OŠK Chorvátsky Grob',hm=$('#mh').checked;Object.assign(m,{date:d,time:$('#mt').value,home:hm?us:o,away:hm?o:us})}E()[id]={played:$('#p').checked,goals:+$('#g').value||0,assists:+$('#a').value||0,mood,note:$('#n').value,gf:$('#gf').value,ga:$('#ga').value};save();$('#dlg').close();render()};
+  $('#del').onclick=()=>{if(!confirm(man?'Naozaj zmazať tento zápas aj so záznamom?':'Vymazať tvoj záznam k tomuto zápasu (góly, asistencie, strely, dojem, ručný výsledok)?'))return;if(man)S.manual=S.manual.filter(x=>x.id!==id);delete E()[id];save();$('#dlg').close();render()};
+  $('#ok').onclick=()=>{if(man){const o=$('#mo2').value.trim(),d=$('#md').value;if(!o||!d){alert('Vyplň dátum a súpera');return}const us='OŠK Chorvátsky Grob',hm=$('#mh').checked;Object.assign(m,{date:d,time:$('#mt').value,home:hm?us:o,away:hm?o:us})}E()[id]={played:$('#p').checked,goals:+$('#g').value||0,assists:+$('#a').value||0,shots:Math.max(0,Math.trunc(Number($('#shots').value)||0)),mood,note:$('#n').value,gf:$('#gf').value,ga:$('#ga').value};save();$('#dlg').close();render()};
   $('#dlg').showModal()}
 function addMatch(){$('#dlg').innerHTML=`<h2>➕ Nový zápas</h2><label>Dátum a čas</label><div class="row"><input type="date" id="d"><input type="time" id="t"></div><label>Súper</label><input type="text" id="o">
   <label><input type="checkbox" id="h" checked> Doma</label><div class="row" style="margin-top:14px"><button class="btn o" id="x">Zrušiť</button><button class="btn" id="ok">Pridať</button></div>`;
